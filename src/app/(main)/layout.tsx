@@ -1,7 +1,14 @@
+import Header from '@/widgets/header/ui/Header'
+
 export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <div>{children}</div>
+  return (
+    <main className="flex h-dvh max-h-dvh w-full flex-col">
+      <Header />
+      {children}
+    </main>
+  )
 }

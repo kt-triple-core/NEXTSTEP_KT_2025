@@ -7,14 +7,12 @@
   --foreground: black;
   --background: var(--color-secondary);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-accent: #6e5aef;
-    --color-primary: #313b51;
-    --color-secondary: #111827;
-    --foreground: white;
-    --background: var(--color-secondary);
-  }
+.dark {
+  --color-accent: #6e5aef;
+  --color-primary: #313b51;
+  --color-secondary: #111827;
+  --foreground: white;
+  --background: var(--color-secondary);
 }
 
 @theme inline {
