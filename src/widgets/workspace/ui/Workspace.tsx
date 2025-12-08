@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -7,6 +7,7 @@ import {
   addEdge,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { initialNodes, initialEdges } from '../model/constants'
@@ -14,15 +15,33 @@ import { useThemeStore } from '@/features/theme/model'
 import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { calculateTreeLayout } from '../lib'
 import { SearchForm } from '@/features/roadmap/searchTechStack/ui'
+import SearchSidebar from './SearchSidebar'
 
 const Workspace = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
 
   // 테마에 따른 격자 무늬 색상 변경
   const { theme } = useThemeStore()
   const gridColor = theme === 'dark' ? '#2f3645' : '#e5e5e5'
+
+  // 사이드바가 열렸다가 닫히면서 ReactFlow가 차지하는 영역이 달라지기 때문에
+  // 그때마다 fitView로 로드맵을 재정렬
+  const { fitView } = useReactFlow()
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!wrapperRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      fitView()
+    })
+
+    observer.observe(wrapperRef.current)
+
+    return () => observer.disconnect()
+  }, [fitView])
 
   const onConnect = useCallback(
     (params: any) => setEdges((eds) => addEdge(params, eds)),
@@ -45,11 +64,11 @@ const Workspace = () => {
 
   // 검색한 이후 로직
   const handleSearchTechStack = useCallback((searchKeyword: string) => {
-    console.log(searchKeyword)
+    setSidebarOpen(true)
   }, [])
 
   return (
-    <div className="h-full w-full">
+    <div className="flex h-full w-full overflow-x-hidden">
       <style>{`
         .react-flow__handle {
           opacity: 0 !important;
@@ -65,21 +84,25 @@ const Workspace = () => {
           display: none;
         }
       `}</style>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        elementsSelectable={false}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        fitView
-        onNodeClick={onNodeClick}
-        className={`h-full w-full`}
-      />
-      <Background variant={BackgroundVariant.Lines} color={gridColor} />
-      <SearchForm handleSearchTechStack={handleSearchTechStack} />
+      <div className="relative h-full w-full">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          elementsSelectable={false}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          fitView
+          onNodeClick={onNodeClick}
+          ref={wrapperRef}
+          className={`h-full w-full`}
+        />
+        <Background variant={BackgroundVariant.Lines} color={gridColor} />
+        <SearchForm handleSearchTechStack={handleSearchTechStack} />
+      </div>
+      <SearchSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
     </div>
   )
 }
