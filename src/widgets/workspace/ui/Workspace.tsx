@@ -13,6 +13,7 @@ import { initialNodes, initialEdges } from '../model/constants'
 import { useThemeStore } from '@/features/theme/model'
 import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { calculateTreeLayout } from '../lib'
+import { SearchForm } from '@/features/roadmap/searchTechStack/ui'
 
 const Workspace = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -41,6 +42,11 @@ const Workspace = () => {
     },
     [selectNode]
   )
+
+  // 검색한 이후 로직
+  const handleSearchTechStack = useCallback((searchKeyword: string) => {
+    console.log(searchKeyword)
+  }, [])
 
   return (
     <div className="h-full w-full">
@@ -73,6 +79,7 @@ const Workspace = () => {
         className={`h-full w-full`}
       />
       <Background variant={BackgroundVariant.Lines} color={gridColor} />
+      <SearchForm handleSearchTechStack={handleSearchTechStack} />
     </div>
   )
 }
