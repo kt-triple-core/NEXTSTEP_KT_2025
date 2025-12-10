@@ -1,5 +1,6 @@
 import { AccentButton } from '@/shared/ui/button'
 import { useState } from 'react'
+import { SelectedNodeToolbar } from '../../selectNode/ui'
 
 interface SearchFormProps {
   handleSearchTechStack: (searchKeyword: string) => void
@@ -9,6 +10,7 @@ const SearchForm = ({ handleSearchTechStack }: SearchFormProps) => {
   const [searchKeyword, setSearchKeyword] = useState<string>('')
   return (
     <div className="absolute bottom-30 left-1/2 w-full max-w-450 -translate-x-1/2 px-30">
+      <SelectedNodeToolbar />
       <div className="bg-primary flex h-50 rounded-md p-5">
         <input
           type="text"

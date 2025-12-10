@@ -5,6 +5,7 @@
   --color-primary: #e1dbf6;
   --color-secondary: #f9f9fd;
   --foreground: black;
+  --foreground-light: #aaaaaa;
   --background: var(--color-secondary);
 }
 .dark {
@@ -12,6 +13,7 @@
   --color-primary: #313b51;
   --color-secondary: #111827;
   --foreground: white;
+  --foreground-light: #aaaaaa;
   --background: var(--color-secondary);
 }
 
@@ -21,6 +23,7 @@
   --color-secondary: var(--color-secondary);
 
   --color-foreground: var(--foreground);
+  --color-foreground-light: var(--foreground-light);
   --color-background: var(--background);
 }
 
