@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ThemeProvider from './providers/ThemeProvider'
-import AuthProviders from '@/features/login/AuthProvider'
+import AuthProvider from './providers/AuthProvider'
 import ReactQueryProviders from './providers/ReactQueryProviders'
 
 export const metadata: Metadata = {
@@ -18,9 +18,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ReactQueryProviders>
-          <AuthProviders>
+          <AuthProvider>
             <ThemeProvider>{children}</ThemeProvider>
-          </AuthProviders>
+          </AuthProvider>
         </ReactQueryProviders>
       </body>
     </html>
