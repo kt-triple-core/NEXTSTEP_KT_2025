@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import ThemeProvider from './providers/ThemeProvider'
 import AuthProviders from '@/features/login/AuthProvider'
+import ReactQueryProviders from './providers/ReactQueryProviders'
 
 export const metadata: Metadata = {
   title: 'Next Step',
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProviders>
-          <ThemeProvider>{children}</ThemeProvider>
-        </AuthProviders>
+        <ReactQueryProviders>
+          <AuthProviders>
+            <ThemeProvider>{children}</ThemeProvider>
+          </AuthProviders>
+        </ReactQueryProviders>
       </body>
     </html>
   )
