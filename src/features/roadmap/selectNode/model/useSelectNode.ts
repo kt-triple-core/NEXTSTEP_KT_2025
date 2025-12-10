@@ -1,11 +1,11 @@
 import { NODE_STYLE } from '@/widgets/workspace/model'
-import { Node } from '@xyflow/react'
+import { CustomNode } from '@/widgets/workspace/model/types'
 import { useCallback } from 'react'
 
 const useSelectNode = (
   selectedNode: string | null,
   setSelectedNode: (id: string | null) => void,
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>
+  setNodes: React.Dispatch<React.SetStateAction<CustomNode[]>>
 ) => {
   const selectNode = useCallback(
     (nodeId: string) => {

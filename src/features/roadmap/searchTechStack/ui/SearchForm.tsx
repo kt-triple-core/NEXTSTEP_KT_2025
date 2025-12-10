@@ -1,5 +1,6 @@
 import { AccentButton } from '@/shared/ui/button'
 import { useState } from 'react'
+import { SelectedNodeToolbar } from '../../selectNode/ui'
 
 interface SearchFormProps {
   onSearch: (searchKeyword: string) => void // 이름만 변경
@@ -18,6 +19,7 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
 
   return (
     <div className="absolute bottom-30 left-1/2 w-full max-w-450 -translate-x-1/2 px-30">
+      <SelectedNodeToolbar />
       <div className="bg-primary flex h-auto rounded-md p-5">
         <input
           type="text"
