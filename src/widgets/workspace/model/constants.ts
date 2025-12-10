@@ -1,4 +1,4 @@
-import { MarkerType, Node, Edge } from '@xyflow/react'
+import { CustomNode } from './types'
 
 export const NODE_STYLE = {
   default: {
@@ -19,50 +19,11 @@ export const EDGE_STYLE = {
   markerEndColor: 'var(--foreground)',
 }
 
-export const initialNodes: Node[] = [
+export const initialNodes: CustomNode[] = [
   {
     id: '1',
-    data: { label: '루트 노드' },
+    data: { label: 'Start' },
     position: { x: 0, y: 0 },
     style: { ...NODE_STYLE.default },
-  },
-  {
-    id: '2',
-    data: { label: '자식 노드 1' },
-    position: { x: 0, y: 0 },
-    style: { ...NODE_STYLE.default },
-  },
-  {
-    id: '3',
-    data: { label: '자식 노드 2' },
-    position: { x: 0, y: 0 },
-    style: { ...NODE_STYLE.default },
-  },
-]
-
-export const initialEdges: Edge[] = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    type: 'default',
-    animated: true,
-    style: { stroke: EDGE_STYLE.stroke, strokeWidth: EDGE_STYLE.strokeWidth },
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      color: EDGE_STYLE.markerEndColor,
-    },
-  },
-  {
-    id: 'e1-3',
-    source: '1',
-    target: '3',
-    type: 'default',
-    animated: true,
-    style: { stroke: EDGE_STYLE.stroke, strokeWidth: EDGE_STYLE.strokeWidth },
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      color: EDGE_STYLE.markerEndColor,
-    },
   },
 ]
