@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ThemeProvider from './providers/ThemeProvider'
+import AuthProviders from '@/features/login/AuthProvider'
 
 export const metadata: Metadata = {
   title: 'Next Step',
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <AuthProviders>
+          <ThemeProvider>{children}</ThemeProvider>
+        </AuthProviders>
       </body>
     </html>
   )
