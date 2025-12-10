@@ -1,4 +1,4 @@
-import { MarkerType, Node, Edge } from '@xyflow/react'
+import { CustomNode } from './types'
 
 export const NODE_STYLE = {
   default: {
@@ -19,7 +19,7 @@ export const EDGE_STYLE = {
   markerEndColor: 'var(--foreground)',
 }
 
-export const initialNodes: Node[] = [
+export const initialNodes: CustomNode[] = [
   {
     id: '1',
     data: { label: 'Start' },

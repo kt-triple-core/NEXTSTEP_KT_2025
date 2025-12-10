@@ -1,4 +1,5 @@
-import { Edge, Node } from '@xyflow/react'
+import { Edge } from '@xyflow/react'
+import { CustomNode } from '../model/types'
 
 const LAYOUT_CONFIG = {
   nodeWidth: 100,
@@ -10,7 +11,10 @@ const LAYOUT_CONFIG = {
 }
 
 // 트리 재배치
-const calculateTreeLayout = (nodes: Node[], edges: Edge[]): Node[] => {
+const calculateTreeLayout = (
+  nodes: CustomNode[],
+  edges: Edge[]
+): CustomNode[] => {
   // 부모-자식 관계 맵 생성
   const childrenMap: Record<string, string[]> = {}
   edges.forEach((edge) => {
@@ -42,7 +46,7 @@ const calculateTreeLayout = (nodes: Node[], edges: Edge[]): Node[] => {
   }
 
   // 노드 배치
-  const positionedNodes: Node[] = []
+  const positionedNodes: CustomNode[] = []
 
   const positionNode = (nodeId: string, x: number, y: number) => {
     // 현재 노드

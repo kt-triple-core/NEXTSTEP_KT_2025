@@ -1,13 +1,14 @@
 import { create } from 'zustand'
-import { Node, Edge } from '@xyflow/react'
+import { Edge } from '@xyflow/react'
 import { initialNodes } from './constants'
+import { CustomNode } from './types'
 
 type WorkspaceStore = {
-  nodes: Node[]
+  nodes: CustomNode[]
   edges: Edge[]
   selectedNode: string | null
 
-  setNodes: React.Dispatch<React.SetStateAction<Node[]>>
+  setNodes: React.Dispatch<React.SetStateAction<CustomNode[]>>
   setEdges: React.Dispatch<React.SetStateAction<Edge[]>>
   setSelectedNode: (id: string | null) => void
 }
