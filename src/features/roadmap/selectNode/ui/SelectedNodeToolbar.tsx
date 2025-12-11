@@ -2,8 +2,15 @@ import { useWorkspaceStore } from '@/widgets/workspace/model'
 import { useEffect } from 'react'
 import { AddingPositionType } from '../model/types'
 import AddingPositionButton from './AddingPositionButton'
+import { GradientButton } from '@/shared/ui/button'
 
-const SelectedNodeToolbar = () => {
+interface SelectedNodeToolbarProps {
+  onRecommendation?: (techName: string) => void
+}
+
+const SelectedNodeToolbar = ({
+  onRecommendation,
+}: SelectedNodeToolbarProps) => {
   const { nodes, selectedNode, addingPosition, setAddingPosition } =
     useWorkspaceStore()
 
@@ -20,13 +27,32 @@ const SelectedNodeToolbar = () => {
     setAddingPosition(position)
   }
 
+  //  AI 추천 버튼 핸들러
+  const handleAIRecommend = () => {
+    console.log('🤖 AI 추천 버튼 클릭됨')
+    const selectedNodeLabel = nodes.find((node) => node.id === selectedNode)
+      ?.data.label
+    if (selectedNodeLabel && onRecommendation) {
+      onRecommendation(selectedNodeLabel)
+    }
+  }
+
   if (selectedNode === null) return null
+
   return (
     <div className="bg-primary mb-10 w-full rounded-md p-10 text-center opacity-90">
       <p className="text-foreground-light text-12">Selected Node</p>
       <p className="text-20">
         {nodes.find((node) => node.id === selectedNode)?.data.label || ''}
       </p>
+
+      {/*  AI 추천 버튼 추가 */}
+      <div className="mt-8 mb-8 flex justify-center">
+        <GradientButton onClick={handleAIRecommend} width="100%">
+          AI Recommend
+        </GradientButton>
+      </div>
+
       <div className="text-14 flex items-center justify-center gap-5">
         <p>Add to</p>
         <div className="bg-secondary rounded-md p-4">
