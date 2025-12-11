@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Sidebar from '@/shared/ui/Sidebar'
 import TechRecommendationList from '@/features/tech/ui/TechRecommendationList'
 import useSearchSimilar from '@/features/ai/model/useSearchSimilar'
-import useTechRecommendation from '@/features/ai/model/useTechRecommendation' // ⭐️ 새로 추가된 훅
+import useTechRecommendation from '@/features/ai/model/useTechRecommendation'
 import { TechItem } from '@/features/ai/model/useTechRecommendation' // TechItem 타입 재사용을 위해 필요 (경로에 맞게 수정)
 
 interface SearchSidebarProps {
@@ -75,7 +75,7 @@ const SearchSidebar = ({
 
       <div className="flex w-full flex-col gap-20 p-16">
         {/* 1차 검색 타이틀 */}
-        <h3 className="text-lg font-semibold text-gray-700">
+        <h3 className="text-foreground font-semibold">
           🔎 기술 검색 결과: "{searchKeyword}"
         </h3>
 
@@ -104,7 +104,7 @@ const SearchSidebar = ({
           recommendationIsLoading ||
           recommendationError) && (
           <div className="mt-20 border-t pt-20">
-            <h3 className="text-foreground text-lg font-semibold text-gray-700">
+            <h3 className="text-foreground font-semibol mb-20">
               💡 '{currentBaseTech}'와 시너지가 좋은 기술
             </h3>
 
