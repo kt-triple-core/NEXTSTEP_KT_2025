@@ -3,23 +3,23 @@
 import { NormalButton, GradientButton } from '@/shared/ui/button'
 import React from 'react'
 
+// ⭐️ TechItem 인터페이스에 isNew 필드 추가
 interface TechItem {
-  // DB에서 온 경우 tech_id 등이 있고, AI에서 왔다면 name/description/img 같은 필드만 있을 수 있음
   tech_id?: string
   name?: string
   description?: string
   icon_url?: string
   usage_count?: number
   score?: number
-  // fromDB 같은 플래그는 서버에서 설정하거나 클라이언트에서 source prop으로 따로 구분
+  isNew?: boolean // ⭐️ AI가 생성한 새로운 기술인지 여부
 }
 
 interface Props {
-  data: TechItem[] // API에서 받은 항목 배열 (빈 배열일 수 있음)
-  isLoading: boolean // 로딩 상태
-  source?: 'db' | 'ai' // 전체 소스 (선택적) - 개별 아이템에도 포함될 수 있음
-  onComplete?: (item: TechItem) => void // Completed 클릭 시 콜백
-  onNew?: (item: TechItem) => void // New 클릭 시 콜백
+  data: TechItem[]
+  isLoading: boolean
+  source?: 'db' | 'ai'
+  onComplete?: (item: TechItem) => void
+  onNew?: (item: TechItem) => void // 기존 New 버튼 콜백 (이제 '관리자에게 요청' 버튼 역할)
 }
 
 /**
@@ -38,12 +38,7 @@ const formatNumber = (num: number): string => {
 
 /**
  * TechRecommendationList
- *
- * - data가 비어있으면 '검색 결과 없음' UI를 띄움.
- * - isLoading이면 로딩 상태 UI를 띄움.
- * - 각 아이템은 이름, 설명, 이미지(또는 fallback), usage_count를 보여줌.
- * - source prop이나 개별 항목으로 AI 추천을 표시할 수 있음.
- * - 버튼 클릭은 onComplete/onNew 콜백을 통해 상위 컴포넌트에 전달.
+ * - 버튼 로직: DB 데이터는 Completed만, AI 신규 데이터는 '관리자에게 요청'만 표시
  */
 const TechRecommendationList: React.FC<Props> = ({
   data,
@@ -52,6 +47,8 @@ const TechRecommendationList: React.FC<Props> = ({
   onComplete,
   onNew,
 }) => {
+  // ... (로딩/결과 없음 처리 생략)
+
   // 1) 로딩 상태 처리
   if (isLoading) {
     return (
@@ -76,14 +73,19 @@ const TechRecommendationList: React.FC<Props> = ({
       {data.map((item, index) => {
         const key = item.tech_id || item.name || index
 
-        // 아이템 이미지 처리: icon_url이 있으면 보여주고, 없거나 로드 실패 시 fallback 이미지 사용
+        // ⭐️ AI가 새로 생성한 기술인지 확인
+        const isNewTech = !!item.isNew
+
+        // ⭐️ 1차 DB 검색 결과인지, 2차 AI 추천 결과인지 구분
+        const isPrimarySearch = source !== 'ai'
+
+        // 아이템 이미지 처리 (생략)
         const imageElement = item.icon_url ? (
           <img
             src={item.icon_url}
             alt={item.name}
             className="h-24 w-24 object-contain"
             onError={(e) => {
-              // 이미지 로드 실패 시 플레이스홀더로 대체
               e.currentTarget.src = 'https://via.placeholder.com/96?text=Tech'
             }}
           />
@@ -98,50 +100,87 @@ const TechRecommendationList: React.FC<Props> = ({
             <div className="bg-secondary mb-10 flex gap-16 rounded-xl p-16 shadow-xl">
               <div className="flex flex-1 flex-col gap-4">
                 <div className="mb-20 flex flex-1 flex-row items-center gap-12">
-                  {/* 기술명 */}
                   <h2 className="flex-1 text-3xl font-semibold">
                     {item.name || '이름 없음'}
                   </h2>
-
-                  {/* 이미지 (또는 fallback) */}
                   {imageElement}
                 </div>
 
-                {/* 설명 (줄바꿈 유지) */}
                 <p className="text-xs whitespace-pre-line text-gray-600">
                   {item.description || '설명이 없습니다.'}
                 </p>
 
-                {/* 사용량(usage_count)이 존재하면 표기 */}
                 {typeof item.usage_count === 'number' && (
                   <p className="mt-4 text-xs text-gray-400">
                     Usage | {formatNumber(item.usage_count)}
                   </p>
                 )}
 
-                {/* AI 추천 배지: source prop 또는 항목 내의 메타데이터로 결정 */}
+                {/* ⭐️ AI 추천 배지: 신규 기술일 때 더 강조 */}
                 {source === 'ai' && (
-                  <span className="mt-2 inline-block w-fit rounded-full bg-yellow-100 px-8 py-4 text-xs text-yellow-800">
-                    AI 추천
+                  <span
+                    className={`mt-2 inline-block w-fit rounded-full px-8 py-4 text-xs font-medium ${isNewTech ? 'bg-indigo-100 text-indigo-800' : 'bg-yellow-100 text-yellow-800'}`}
+                  >
+                    {isNewTech ? '⭐️ AI 생성 (신규)' : '✨ AI 추천'}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* 하단 액션 버튼: 상위 컴포넌트로 콜백 전달 */}
+            {/* ⭐️ 하단 액션 버튼: 로직 변경 ⭐️ */}
             <div className="flex justify-between gap-10">
-              <NormalButton
-                width="calc(50% - 5px)"
-                onClick={() => onComplete && onComplete(item)}
-              >
-                Completed
-              </NormalButton>
-              <GradientButton
-                width="calc(50% - 5px)"
-                onClick={() => onNew && onNew(item)}
-              >
-                New
-              </GradientButton>
+              {/* ------------------------------------------- */}
+              {/* 1. 1차 DB/검색 결과인 경우 (isPrimarySearch) */}
+              {/* ------------------------------------------- */}
+              {isPrimarySearch ? (
+                <>
+                  {/* Completed 버튼 (1차 검색 결과에는 항상 표시) */}
+                  <NormalButton
+                    width="calc(50% - 5px)"
+                    onClick={() => onComplete && onComplete(item)}
+                  >
+                    Completed
+                  </NormalButton>
+
+                  {/* New 버튼 (1차 검색 결과에는 항상 표시) */}
+                  <GradientButton
+                    width="calc(50% - 5px)"
+                    onClick={() => onNew && onNew(item)} // ⬅️ AI 추천을 트리거하는 버튼
+                  >
+                    New
+                  </GradientButton>
+                </>
+              ) : (
+                /* ------------------------------------------- */
+                /* 2. 2차 AI 추천 결과인 경우 (source === 'ai') */
+                /* ------------------------------------------- */
+                <>
+                  {/* AI 추천 결과: DB에 있는 기술 (isNew: false)은 Completed만 */}
+                  {!isNewTech && onComplete && (
+                    <>
+                      <NormalButton
+                        width="calc(50% - 5px)"
+                        onClick={() => onComplete(item)}
+                      >
+                        Completed
+                      </NormalButton>
+                      <GradientButton
+                        width="calc(50% - 5px)"
+                        onClick={() => onNew && onNew(item)}
+                      >
+                        New
+                      </GradientButton>
+                    </>
+                  )}
+
+                  {/* AI 추천 결과: AI가 생성한 신규 기술 (isNew: true)은 관리자 요청만 */}
+                  {isNewTech && onNew && (
+                    <GradientButton width="100%" onClick={() => onNew(item)}>
+                      Request to Admin
+                    </GradientButton>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )
