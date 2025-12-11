@@ -3,7 +3,7 @@
 import { NormalButton, GradientButton } from '@/shared/ui/button'
 import React from 'react'
 
-// ⭐️ TechItem 인터페이스에 isNew 필드 추가
+// TechItem 인터페이스에 isNew 필드 추가
 interface TechItem {
   tech_id?: string
   name?: string
@@ -11,7 +11,7 @@ interface TechItem {
   icon_url?: string
   usage_count?: number
   score?: number
-  isNew?: boolean // ⭐️ AI가 생성한 새로운 기술인지 여부
+  isNew?: boolean // AI가 생성한 새로운 기술인지 여부
 }
 
 interface Props {
@@ -73,10 +73,10 @@ const TechRecommendationList: React.FC<Props> = ({
       {data.map((item, index) => {
         const key = item.tech_id || item.name || index
 
-        // ⭐️ AI가 새로 생성한 기술인지 확인
+        // AI가 새로 생성한 기술인지 확인
         const isNewTech = !!item.isNew
 
-        // ⭐️ 1차 DB 검색 결과인지, 2차 AI 추천 결과인지 구분
+        // 1차 DB 검색 결과인지, 2차 AI 추천 결과인지 구분
         const isPrimarySearch = source !== 'ai'
 
         // 아이템 이미지 처리 (생략)
@@ -116,7 +116,7 @@ const TechRecommendationList: React.FC<Props> = ({
                   </p>
                 )}
 
-                {/* ⭐️ AI 추천 배지: 신규 기술일 때 더 강조 */}
+                {/* AI 추천 배지: 신규 기술일 때 더 강조 */}
                 {source === 'ai' && (
                   <span
                     className={`mt-2 inline-block w-fit rounded-full px-8 py-4 text-xs font-medium ${isNewTech ? 'bg-indigo-100 text-indigo-800' : 'bg-yellow-100 text-yellow-800'}`}
@@ -127,7 +127,7 @@ const TechRecommendationList: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* ⭐️ 하단 액션 버튼: 로직 변경 ⭐️ */}
+            {/* 하단 액션 버튼: 로직 변경  */}
             <div className="flex justify-between gap-10">
               {/* ------------------------------------------- */}
               {/* 1. 1차 DB/검색 결과인 경우 (isPrimarySearch) */}

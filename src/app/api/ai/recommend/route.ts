@@ -33,7 +33,7 @@ export const POST = async (req: Request) => {
         { status: 400 }
       )
     } // -------------------------------
-    // 1. Gemini AI 호출: 추천 기술 이름 리스트만 요청 (⭐️ 영문 원본 요청으로 수정 ⭐️)
+    // 1. Gemini AI 호출: 추천 기술 이름 리스트만 요청 (영문 원본 요청으로 수정 )
     // -------------------------------
 
     const aiPrompt = `"${techName}" 기술과 시너지가 가장 좋거나 함께 자주 사용되는 기술 3가지의 이름을 JSON 배열 형식으로 나열해주세요. 이름은 **번역되지 않은 영문 원본**을 사용해야 하며, 어떤 추가 설명도 없이 이름만 포함해야 합니다.
@@ -92,7 +92,7 @@ export const POST = async (req: Request) => {
         // A. DB에 있는 경우: DB 데이터를 사용
         return { ...dbItem, isNew: false } as TechItem
       } else {
-        // B. DB에 없는 경우: AI에게 상세 정보 요청 (⭐️ 올바른 detailPrompt 사용 ⭐️)
+        // B. DB에 없는 경우: AI에게 상세 정보 요청 ( 올바른 detailPrompt 사용 )
 
         const detailPrompt = `"${name}" 기술에 대해 name, description, icon_url을 포함하는 JSON 객체를 반환해주세요.
     
@@ -148,7 +148,7 @@ export const POST = async (req: Request) => {
   } catch (error: any) {
     const errorMessage =
       error.response?.data?.error?.message || error.message || '알 수 없는 오류'
-    console.error('🔥 [CRITICAL] 추천 검색 중 최종 오류 발생:', errorMessage)
+    console.error(' [CRITICAL] 추천 검색 중 최종 오류 발생:', errorMessage)
 
     return NextResponse.json(
       { error: `API 통신 오류: ${errorMessage}` },

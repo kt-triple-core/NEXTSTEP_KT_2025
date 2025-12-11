@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/shared/libs/axios'
 
-// ⭐ keyword 기반 기술 검색 훅
+// keyword 기반 기술 검색 훅
 // - keyword 변화 시 자동 검색
 // - API: /ai/search
 
