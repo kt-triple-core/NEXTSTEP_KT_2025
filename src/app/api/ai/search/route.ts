@@ -1,4 +1,3 @@
-// src/app/api/search/route.ts
 import { NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
 import axios from 'axios'
@@ -8,44 +7,41 @@ export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url)
     const keyword = searchParams.get('keyword')?.trim()
 
+    // keyword 없으면 early return
     if (!keyword) {
       return NextResponse.json({ source: 'none', data: [] })
     }
 
-    // 1) DB 검색 — limit 제거!!!
-    const { data: dbData, error } = await supabase
+    // -------------------------------
+    // 1) Supabase DB 검색
+    // -------------------------------
+    const { data: dbData } = await supabase
       .from('techs')
       .select('*')
       .or(`name.ilike.%${keyword}%,description.ilike.%${keyword}%`)
-    // ❌ .limit(5) 절대 금지
-    // 전체 가져와야 점수 계산이 가능함
+    // ilike는 대소문자 구분 없는 부분 일치 검색
 
-    if (error) {
-      return NextResponse.json(
-        { error: 'DB 조회 실패', data: [] },
-        { status: 500 }
-      )
-    }
-
+    // DB에서 데이터 찾은 경우
     if (dbData && dbData.length > 0) {
-      // 2) 점수 계산
+      // 점수 계산
       const scoredData = dbData.map((item) => {
         let score = 0
+
         const lowerKeyword = keyword.toLowerCase()
         const lowerName = item.name.toLowerCase()
         const lowerDesc = item.description?.toLowerCase() || ''
 
-        if (lowerName === lowerKeyword) score += 100
-        if (lowerName.startsWith(lowerKeyword)) score += 50
-        if (lowerName.includes(lowerKeyword)) score += 30
-        if (lowerDesc.includes(lowerKeyword)) score += 10
+        if (lowerName === lowerKeyword) score += 100 // 완전 일치 -> 사용자가 특정 기술 명을 정확하게 입력한 경우
+        if (lowerName.startsWith(lowerKeyword)) score += 50 // 핵심기술/패키지의 변형이나 파생 기술(접두사 일치)
+        if (lowerName.includes(lowerKeyword)) score += 30 // 이름 어딘가에 포함되는 경우
+        if (lowerDesc.includes(lowerKeyword)) score += 10 // 설명에 포함되는 경우
 
-        score += (item.usage_count || 0) * 0.1
+        score += (item.usage_count || 0) * 0.1 // 사용자 인기도 가중치
 
         return { ...item, score }
       })
 
-      // 3) 점수 높은 순으로 정렬 후 top 5만 추출
+      // 점수 높은 순으로 TOP 5 반환
       const topResults = scoredData
         .sort((a, b) => b.score - a.score)
         .slice(0, 5)
@@ -56,7 +52,9 @@ export const GET = async (req: Request) => {
       })
     }
 
-    // 4) DB에 없으면 AI로 검색
+    // -------------------------------
+    // 2) DB에 없으면 OpenAI 검색
+    // -------------------------------
     const aiResponse = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -64,10 +62,8 @@ export const GET = async (req: Request) => {
         messages: [
           {
             role: 'user',
-            content: `
-              사용자가 "${keyword}"를 입력했습니다.
-              기술이면 name/description/img JSON으로 출력.
-            `,
+            content: `사용자가 "${keyword}"를 입력했습니다.
+              기술이면 name/description/img JSON으로 출력.`,
           },
         ],
       },
@@ -79,9 +75,13 @@ export const GET = async (req: Request) => {
       }
     )
 
+    // GPT 응답 JSON 파싱
     const aiData = JSON.parse(aiResponse.data.choices[0].message.content)
 
-    return NextResponse.json({ source: 'ai', data: [aiData] })
+    return NextResponse.json({
+      source: 'ai',
+      data: [aiData],
+    })
   } catch (error) {
     return NextResponse.json(
       { error: '검색 중 오류 발생', data: [] },
