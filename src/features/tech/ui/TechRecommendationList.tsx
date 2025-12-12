@@ -1,6 +1,4 @@
-'use client'
-
-import { NormalButton, GradientButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import React from 'react'
 
 // TechItem 인터페이스에 isNew 필드 추가
@@ -135,20 +133,22 @@ const TechRecommendationList: React.FC<Props> = ({
               {isPrimarySearch ? (
                 <>
                   {/* Completed 버튼 (1차 검색 결과에는 항상 표시) */}
-                  <NormalButton
-                    width="calc(50% - 5px)"
+                  <Button
+                    variant="secondary"
+                    className="h-50 w-[calc(50%-5px)]"
                     onClick={() => onComplete && onComplete(item)}
                   >
                     Completed
-                  </NormalButton>
+                  </Button>
 
                   {/* New 버튼 (1차 검색 결과에는 항상 표시) */}
-                  <GradientButton
-                    width="calc(50% - 5px)"
+                  <Button
+                    variant="gradient"
+                    className="h-50 w-[calc(50%-5px)]"
                     onClick={() => onNew && onNew(item)} // ⬅️ AI 추천을 트리거하는 버튼
                   >
                     New
-                  </GradientButton>
+                  </Button>
                 </>
               ) : (
                 /* ------------------------------------------- */
@@ -158,26 +158,32 @@ const TechRecommendationList: React.FC<Props> = ({
                   {/* AI 추천 결과: DB에 있는 기술 (isNew: false)은 Completed만 */}
                   {!isNewTech && onComplete && (
                     <>
-                      <NormalButton
-                        width="calc(50% - 5px)"
+                      <Button
+                        variant="secondary"
+                        className="h-50 w-[calc(50%-5px)]"
                         onClick={() => onComplete(item)}
                       >
                         Completed
-                      </NormalButton>
-                      <GradientButton
-                        width="calc(50% - 5px)"
+                      </Button>
+                      <Button
+                        variant="gradient"
+                        className="h-50 w-[calc(50%-5px)]"
                         onClick={() => onNew && onNew(item)}
                       >
                         New
-                      </GradientButton>
+                      </Button>
                     </>
                   )}
 
                   {/* AI 추천 결과: AI가 생성한 신규 기술 (isNew: true)은 관리자 요청만 */}
                   {isNewTech && onNew && (
-                    <GradientButton width="100%" onClick={() => onNew(item)}>
+                    <Button
+                      variant="gradient"
+                      className="h-50 w-full"
+                      onClick={() => onNew(item)}
+                    >
                       Request to Admin
-                    </GradientButton>
+                    </Button>
                   )}
                 </>
               )}

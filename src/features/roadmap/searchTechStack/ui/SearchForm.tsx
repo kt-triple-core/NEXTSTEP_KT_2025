@@ -1,4 +1,4 @@
-import { AccentButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import { useState } from 'react'
 import { SelectedNodeToolbar } from '../../selectNode/ui'
 
@@ -33,7 +33,9 @@ const SearchForm = ({ onSearch, onRecommendation }: SearchFormProps) => {
             }
           }}
         />
-        <AccentButton onClick={handleSearch}>Search</AccentButton>
+        <Button variant="accent" onClick={handleSearch} className="px-20 py-8">
+          Search
+        </Button>
       </div>
     </div>
   )

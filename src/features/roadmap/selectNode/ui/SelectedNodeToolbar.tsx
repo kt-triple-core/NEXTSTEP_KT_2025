@@ -2,7 +2,7 @@ import { useWorkspaceStore } from '@/widgets/workspace/model'
 import { useEffect } from 'react'
 import { AddingPositionType } from '../model/types'
 import AddingPositionButton from './AddingPositionButton'
-import { GradientButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 
 interface SelectedNodeToolbarProps {
   onRecommendation?: (techName: string) => void
@@ -48,9 +48,13 @@ const SelectedNodeToolbar = ({
 
       {/*  AI 추천 버튼 추가 */}
       <div className="mt-8 mb-8 flex justify-center">
-        <GradientButton onClick={handleAIRecommend} width="100%">
+        <Button
+          variant="gradient"
+          onClick={handleAIRecommend}
+          className="text-16 h-50 w-full"
+        >
           AI Recommend
-        </GradientButton>
+        </Button>
       </div>
 
       <div className="text-14 flex items-center justify-center gap-5">
