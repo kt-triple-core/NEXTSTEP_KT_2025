@@ -14,6 +14,7 @@ import { SearchForm } from '@/features/roadmap/searchTechStack/ui'
 import { useWorkspaceStore } from '../model'
 import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
 import { useOpen } from '@/shared/model'
+import WorkspaceList from './WorkspaceList'
 
 const Workspace = () => {
   const { nodes, setNodes, edges, selectedNode, setSelectedNode } =
@@ -122,6 +123,7 @@ const Workspace = () => {
           onSearch={handleSearch}
           onRecommendation={handleRecommendation}
         />
+        <WorkspaceList />
       </div>
       {/* <AddButton /> */}
       <SearchSidebar
