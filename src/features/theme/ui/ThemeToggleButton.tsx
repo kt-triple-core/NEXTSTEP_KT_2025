@@ -1,5 +1,4 @@
-'use client'
-import { HeaderButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import { useThemeStore } from '../model'
 import Sun from './SunIcon'
 import Moon from './MoonIcon'
@@ -7,9 +6,9 @@ import Moon from './MoonIcon'
 const ThemeToggleButton = () => {
   const { theme, toggleTheme } = useThemeStore()
   return (
-    <HeaderButton onClick={toggleTheme}>
+    <Button onClick={toggleTheme} className="h-50 w-50">
       {theme === 'light' ? <Sun /> : <Moon />}
-    </HeaderButton>
+    </Button>
   )
 }
 

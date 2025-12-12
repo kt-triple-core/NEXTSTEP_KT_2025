@@ -1,1 +1,1 @@
-export type AddingPositionType = 'preseding' | 'following'
+export type AddingPositionType = 'preceding' | 'following'

@@ -1,9 +1,13 @@
-import { AccentButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import { useAddNode } from '../model'
 
 const AddButton = () => {
   const { add } = useAddNode()
-  return <AccentButton onClick={add}>Add</AccentButton>
+  return (
+    <Button variant="accent" onClick={add} className="px-20 py-8">
+      Add
+    </Button>
+  )
 }
 
 export default AddButton

@@ -12,14 +12,23 @@ import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { calculateTreeLayout } from '../lib'
 import { SearchForm } from '@/features/roadmap/searchTechStack/ui'
 import { useWorkspaceStore } from '../model'
-import { AddButton } from '@/features/roadmap/addNode/ui'
-import SearchSidebar from '@/features/roadmap/searchTechStack/ui/SearchSidebar'
+import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
+import { useOpen } from '@/shared/model'
 
 const Workspace = () => {
-  const { nodes, setNodes, edges, setEdges, selectedNode, setSelectedNode } =
+  const { nodes, setNodes, edges, selectedNode, setSelectedNode } =
     useWorkspaceStore()
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
+  const {
+    isOpen: isSidebarOpen,
+    open: openSidebar,
+    toggleOpen: toggleSidebarOpen,
+  } = useOpen()
   const [searchKeyword, setSearchKeyword] = useState<string>('')
+  const [sidebarMode, setSidebarMode] = useState<'search' | 'recommendation'>(
+    'search'
+  )
+  const [recommendationTechName, setRecommendationTechName] =
+    useState<string>('')
 
   // 테마에 따른 격자 무늬 색상 변경
   const { theme } = useThemeStore()
@@ -56,11 +65,27 @@ const Workspace = () => {
     [selectNode]
   )
 
-  const handleSearch = useCallback((keyword: string) => {
-    console.log('🎯 검색 실행:', keyword)
-    setSearchKeyword(keyword)
-    setSidebarOpen(true)
-  }, [])
+  // 검색 핸들러 (검색 모드)
+  const handleSearch = useCallback(
+    (keyword: string) => {
+      console.log(' 검색 실행:', keyword)
+      setSearchKeyword(keyword)
+      setSidebarMode('search')
+      openSidebar()
+    },
+    [openSidebar]
+  )
+
+  // AI 추천 핸들러 (추천 모드)
+  const handleRecommendation = useCallback(
+    (techName: string) => {
+      console.log(' AI 추천 실행:', techName)
+      setRecommendationTechName(techName)
+      setSidebarMode('recommendation')
+      openSidebar()
+    },
+    [openSidebar]
+  )
 
   return (
     <div className="flex h-full w-full overflow-x-hidden">
@@ -93,13 +118,18 @@ const Workspace = () => {
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
 
-        <SearchForm onSearch={handleSearch} />
+        <SearchForm
+          onSearch={handleSearch}
+          onRecommendation={handleRecommendation}
+        />
       </div>
-
+      {/* <AddButton /> */}
       <SearchSidebar
-        open={sidebarOpen}
-        setOpen={setSidebarOpen}
+        isOpen={isSidebarOpen}
+        toggleOpen={toggleSidebarOpen}
         searchKeyword={searchKeyword}
+        mode={sidebarMode}
+        recommendationTechName={recommendationTechName}
       />
     </div>
   )

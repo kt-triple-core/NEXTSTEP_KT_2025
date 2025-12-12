@@ -16,7 +16,7 @@ type WorkspaceStore = {
   setSelectedNode: (id: string | null) => void
 
   // 현재 노드에서 추가할 방향
-  // preseding -> 부모에 추가(선행 학습)
+  // preceding -> 부모에 추가(선행 학습)
   // following -> 자식에 추가(후행 학습)
   addingPosition: AddingPositionType
   setAddingPosition: (position: AddingPositionType) => void

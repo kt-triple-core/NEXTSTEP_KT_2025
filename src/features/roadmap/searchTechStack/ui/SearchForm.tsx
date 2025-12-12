@@ -1,25 +1,25 @@
-import { AccentButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import { useState } from 'react'
 import { SelectedNodeToolbar } from '../../selectNode/ui'
 
 interface SearchFormProps {
-  onSearch: (searchKeyword: string) => void // 이름만 변경
+  onSearch: (searchKeyword: string) => void
+  onRecommendation?: (techName: string) => void // AI 추천 핸들러 추가
 }
 
-const SearchForm = ({ onSearch }: SearchFormProps) => {
-  // 여기도 변경
+const SearchForm = ({ onSearch, onRecommendation }: SearchFormProps) => {
   const [searchKeyword, setSearchKeyword] = useState<string>('')
 
   const handleSearch = () => {
     const keyword = searchKeyword.trim()
     if (keyword) {
-      onSearch(keyword) // handleSearchTechStack → onSearch
+      onSearch(keyword)
     }
   }
 
   return (
     <div className="absolute bottom-30 left-1/2 w-full max-w-450 -translate-x-1/2 px-30">
-      <SelectedNodeToolbar />
+      <SelectedNodeToolbar onRecommendation={onRecommendation} />
       <div className="bg-primary flex h-auto rounded-md p-5">
         <input
           type="text"
@@ -29,15 +29,13 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
           onChange={(e) => setSearchKeyword(e.target.value)}
           onKeyUp={(e) => {
             if (e.key === 'Enter') {
-              handleSearch() // 여기 변경
+              handleSearch()
             }
           }}
         />
-        <AccentButton onClick={handleSearch}>
-          {' '}
-          {/* 여기 변경 */}
+        <Button variant="accent" onClick={handleSearch} className="px-20 py-8">
           Search
-        </AccentButton>
+        </Button>
       </div>
     </div>
   )

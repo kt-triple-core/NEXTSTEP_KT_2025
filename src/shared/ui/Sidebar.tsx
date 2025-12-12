@@ -1,24 +1,24 @@
 import { ChevronLeft, ChevronRight } from './icon'
 
 interface SidebarProps {
-  open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  isOpen: boolean
+  toggleOpen: () => void
   children: React.ReactNode
 }
-const Sidebar = ({ open, setOpen, children }: SidebarProps) => {
+const Sidebar = ({ isOpen, toggleOpen, children }: SidebarProps) => {
   return (
     <aside className="relative">
       <div
-        className={`shrink-0 ${open ? 'w-300' : 'w-0'} bg-primary max-w-full overflow-y-auto transition-[width]`}
+        className={`shrink-0 ${isOpen ? 'w-300' : 'w-0'} bg-primary max-w-full overflow-y-auto transition-[width]`}
         style={{ height: 'calc(100vh - 80px)' }}
       >
         {children}
       </div>
       <button
         className="bg-primary absolute top-10 -left-25 flex h-50 w-25 items-center justify-center rounded-s-xl hover:cursor-pointer"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggleOpen}
       >
-        {open ? <ChevronRight /> : <ChevronLeft />}
+        {isOpen ? <ChevronRight /> : <ChevronLeft />}
       </button>
     </aside>
   )

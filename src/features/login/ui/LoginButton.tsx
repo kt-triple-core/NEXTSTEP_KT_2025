@@ -1,5 +1,4 @@
-'use client'
-import { AccentButton } from '@/shared/ui/button'
+import { Button } from '@/shared/ui'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { ProfileButton } from '../../profile/ui'
 import { useRouter } from 'next/navigation'
@@ -9,7 +8,11 @@ const LoginButton = () => {
   const router = useRouter()
 
   if (status === 'loading') {
-    return <AccentButton disabled>로딩중...</AccentButton>
+    return (
+      <Button variant="accent" disabled className="px-20">
+        로딩중...
+      </Button>
+    )
   }
 
   if (session) {
@@ -17,18 +20,25 @@ const LoginButton = () => {
       <div className="flex items-center gap-10">
         <ProfileButton />
         {/* <span className="text-sm">{session.user?.name}님</span> */}
-        <AccentButton
-          className="h-50"
+        <Button
+          variant="accent"
+          className="h-50 px-20"
           onClick={() => signOut({ callbackUrl: '/' })}
         >
           로그아웃
-        </AccentButton>
+        </Button>
       </div>
     )
   }
 
   return (
-    <AccentButton onClick={() => router.push('/login')}>로그인</AccentButton>
+    <Button
+      variant="accent"
+      onClick={() => router.push('/login')}
+      className="px-20"
+    >
+      로그인
+    </Button>
   )
 }
 
