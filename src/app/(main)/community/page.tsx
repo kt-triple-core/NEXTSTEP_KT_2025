@@ -1,17 +1,23 @@
 'use client'
 
-import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
 import CommunityCardGrid from '@/widgets/community/ui/CommunityCardGrid'
-import { useOpen } from '@/shared/model'
-import { useState } from 'react'
+import CommunitySidebar from '@/widgets/community/ui/CommunitySidebar'
+import useOpen from '@/shared/model/useOpen'
 
 export default function CommunityPage() {
+  const { isOpen, toggleOpen } = useOpen()
+
   return (
     <div className="flex w-full overflow-x-hidden">
       {/* 커뮤니티 카드 영역 */}
-      <div className="flex-1 p-6 px-100 py-60">
-        <CommunityCardGrid />
+      <div className="flex flex-1 justify-center py-60">
+        <div className="w-full max-w-[1200px] px-24">
+          <CommunityCardGrid />
+        </div>
       </div>
+
+      {/* 커뮤니티 전용 사이드바 */}
+      <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
     </div>
   )
 }

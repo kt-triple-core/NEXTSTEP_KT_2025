@@ -22,7 +22,7 @@ export default function CommunityCardGrid() {
   const router = useRouter()
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
       {dummyPosts.map((post) => (
         <CommunityCard
           key={post.id}

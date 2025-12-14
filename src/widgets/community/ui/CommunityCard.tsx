@@ -11,7 +11,7 @@ export default function CommunityCard({ title, onClick }: CommunityCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="bg-secondary mb-50 flex h-250 w-400 flex-col overflow-hidden rounded-2xl text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+      className="bg-secondary mb-50 flex h-300 w-510 flex-col overflow-hidden rounded-2xl text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
     >
       {/* 상단 빈 영역 */}
       <div className="bg-foreground-light flex-1 p-4"></div>
