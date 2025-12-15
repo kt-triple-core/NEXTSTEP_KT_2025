@@ -17,6 +17,7 @@ interface Props {
   isLoading: boolean
   source?: 'db' | 'ai'
   onComplete?: (item: TechItem) => void
+  handleUpdateNode?: (item: TechItem) => void
   onNew?: (item: TechItem) => void // 기존 New 버튼 콜백 (이제 '관리자에게 요청' 버튼 역할)
 }
 
@@ -43,6 +44,7 @@ const TechRecommendationList: React.FC<Props> = ({
   isLoading,
   source,
   onComplete,
+  handleUpdateNode,
   onNew,
 }) => {
   // ... (로딩/결과 없음 처리 생략)
@@ -142,12 +144,20 @@ const TechRecommendationList: React.FC<Props> = ({
                   </Button>
 
                   {/* New 버튼 (1차 검색 결과에는 항상 표시) */}
-                  <Button
+                  {/* <Button
                     variant="gradient"
-                    className="h-50 w-[calc(50%-5px)]"
+                    className="h-50 w-full"
                     onClick={() => onNew && onNew(item)} // ⬅️ AI 추천을 트리거하는 버튼
                   >
                     New
+                  </Button> */}
+
+                  <Button
+                    variant="gradient"
+                    className="h-50 w-[calc(50%-5px)]"
+                    onClick={() => handleUpdateNode && handleUpdateNode(item)}
+                  >
+                    Save
                   </Button>
                 </>
               ) : (

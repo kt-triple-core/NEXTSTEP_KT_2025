@@ -1,15 +1,14 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Background, BackgroundVariant, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useThemeStore } from '@/features/theme/model'
-import { SearchForm } from '@/features/roadmap/searchTechStack/ui'
 import { useWorkspaceStore } from '../model'
 import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
 import { useOpen } from '@/shared/model'
 import WorkspaceList from './WorkspaceList'
-import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { useAddNode } from '@/features/roadmap/addNode/model'
+import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { useConnectNodes } from '@/features/roadmap/connectNodes/model'
 
 const Workspace = () => {
@@ -20,12 +19,6 @@ const Workspace = () => {
     open: openSidebar,
     toggleOpen: toggleSidebarOpen,
   } = useOpen()
-  const [searchKeyword, setSearchKeyword] = useState<string>('')
-  const [sidebarMode, setSidebarMode] = useState<'search' | 'recommendation'>(
-    'search'
-  )
-  const [recommendationTechName, setRecommendationTechName] =
-    useState<string>('')
 
   // 테마에 따른 격자 무늬 색상 변경
   const { theme } = useThemeStore()
@@ -60,17 +53,6 @@ const Workspace = () => {
       openSidebar()
     }
   }, [selectedNode])
-
-  // 검색 핸들러 (검색 모드)
-  const handleSearch = useCallback(
-    (keyword: string) => {
-      console.log(' 검색 실행:', keyword)
-      setSearchKeyword(keyword)
-      setSidebarMode('search')
-      openSidebar()
-    },
-    [openSidebar]
-  )
 
   return (
     <div className="flex h-full w-full overflow-x-hidden">
@@ -109,29 +91,26 @@ const Workspace = () => {
       `}</style>
       <div className="relative h-full w-full">
         <ReactFlow
+          // ref={wrapperRef}
           nodes={nodes}
           edges={edges}
-          elementsSelectable={false}
-          fitView
-          // ref={wrapperRef}
-          onNodeClick={onNodeClick}
-          onConnectEnd={onConnectEnd}
           onNodesChange={onNodesChange}
+          elementsSelectable={false}
+          onNodeClick={onNodeClick}
           onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
           nodeOrigin={nodeOrigin}
+          fitView
           className={`h-full w-full`}
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
-
-        <SearchForm onSearch={handleSearch} />
         <WorkspaceList />
       </div>
       <SearchSidebar
+        key={`${selectedNode?.id}-${selectedNode?.data.label}` || ''}
         isOpen={isSidebarOpen}
         toggleOpen={toggleSidebarOpen}
-        searchKeyword={searchKeyword}
-        mode={sidebarMode}
-        recommendationTechName={recommendationTechName}
+        selectedNode={selectedNode}
       />
     </div>
   )

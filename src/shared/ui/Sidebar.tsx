@@ -9,7 +9,7 @@ const Sidebar = ({ isOpen, toggleOpen, children }: SidebarProps) => {
   return (
     <aside className="relative">
       <div
-        className={`shrink-0 ${isOpen ? 'w-300' : 'w-0'} bg-primary max-w-full overflow-y-auto transition-[width]`}
+        className={`shrink-0 ${isOpen ? 'w-300' : 'w-0'} bg-primary scrollbar-hide max-w-full overflow-y-auto transition-[width]`}
         style={{ height: 'calc(100vh - 80px)' }}
       >
         {children}
