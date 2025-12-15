@@ -9,9 +9,10 @@ import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
 import { useOpen } from '@/shared/model'
 import WorkspaceList from './WorkspaceList'
 import { useSelectNode } from '@/features/roadmap/selectNode/model'
+import { useAddNode } from '@/features/roadmap/addNode/model'
 
 const Workspace = () => {
-  const { nodes, edges, selectedNode } = useWorkspaceStore()
+  const { nodes, onNodesChange, edges, selectedNode } = useWorkspaceStore()
   const {
     isOpen: isSidebarOpen,
     open: openSidebar,
@@ -46,6 +47,8 @@ const Workspace = () => {
 
   // 노드 클릭 이벤트
   const { onNodeClick } = useSelectNode()
+  // 노드 추가 이벤트
+  const { onConnectEnd } = useAddNode()
 
   // 노드 선택됐을 때 사이드바 열기
   useEffect(() => {
@@ -108,6 +111,8 @@ const Workspace = () => {
           fitView
           // ref={wrapperRef}
           onNodeClick={onNodeClick}
+          onConnectEnd={onConnectEnd}
+          onNodesChange={onNodesChange}
           className={`h-full w-full`}
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />

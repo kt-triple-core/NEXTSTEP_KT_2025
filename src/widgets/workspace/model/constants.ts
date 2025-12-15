@@ -6,17 +6,11 @@ export const NODE_STYLE = {
     color: 'var(--foreground)',
     borderRadius: '8px',
     fontSize: '12px',
-    border: '2px solid var(--color-primary)',
+    border: '1px solid var(--color-primary)',
   },
   selected: {
-    border: '2px solid var(--color-accent)',
+    border: '1px solid var(--color-accent)',
   },
-}
-
-export const EDGE_STYLE = {
-  stroke: 'var(--foreground)',
-  strokeWidth: 1,
-  markerEndColor: 'var(--foreground)',
 }
 
 export const initialNodes: CustomNode[] = [

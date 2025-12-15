@@ -1,5 +1,11 @@
 import { create } from 'zustand'
-import { Edge } from '@xyflow/react'
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  Edge,
+  EdgeChange,
+  NodeChange,
+} from '@xyflow/react'
 import { initialNodes } from './constants'
 import { CustomNode } from './types'
 
@@ -11,6 +17,8 @@ type WorkspaceStore = {
     nodes: CustomNode[] | ((nodes: CustomNode[]) => CustomNode[])
   ) => void
   setEdges: (edges: Edge[] | ((edges: Edge[]) => Edge[])) => void
+  onNodesChange: (changes: NodeChange<CustomNode>[]) => void
+  onEdgesChange: (changes: EdgeChange[]) => void
 
   // 선택된 노드
   selectedNode: CustomNode | null
@@ -20,6 +28,15 @@ type WorkspaceStore = {
 const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   nodes: initialNodes,
   edges: [],
+
+  onNodesChange: (changes) =>
+    set((state) => ({
+      nodes: applyNodeChanges<CustomNode>(changes, state.nodes),
+    })),
+  onEdgesChange: (changes) =>
+    set((state) => ({
+      edges: applyEdgeChanges(changes, state.edges),
+    })),
 
   setNodes: (nodes) =>
     set({ nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes }),
