@@ -8,6 +8,7 @@ import { useWorkspaceStore } from '../model'
 import SearchSidebar from '@/widgets/workspace/ui/SearchSidebar'
 import { useOpen } from '@/shared/model'
 import WorkspaceList from './WorkspaceList'
+import { useSelectNode } from '@/features/roadmap/selectNode/model'
 
 const Workspace = () => {
   const { nodes, edges, selectedNode } = useWorkspaceStore()
@@ -43,6 +44,9 @@ const Workspace = () => {
   //   return () => observer.disconnect()
   // }, [fitView])
 
+  // 노드 클릭 이벤트
+  const { onNodeClick } = useSelectNode()
+
   // 노드 선택됐을 때 사이드바 열기
   useEffect(() => {
     if (selectedNode) {
@@ -56,17 +60,6 @@ const Workspace = () => {
       console.log(' 검색 실행:', keyword)
       setSearchKeyword(keyword)
       setSidebarMode('search')
-      openSidebar()
-    },
-    [openSidebar]
-  )
-
-  // AI 추천 핸들러 (추천 모드)
-  const handleRecommendation = useCallback(
-    (techName: string) => {
-      console.log(' AI 추천 실행:', techName)
-      setRecommendationTechName(techName)
-      setSidebarMode('recommendation')
       openSidebar()
     },
     [openSidebar]
@@ -114,14 +107,12 @@ const Workspace = () => {
           elementsSelectable={false}
           fitView
           // ref={wrapperRef}
+          onNodeClick={onNodeClick}
           className={`h-full w-full`}
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
 
-        <SearchForm
-          onSearch={handleSearch}
-          onRecommendation={handleRecommendation}
-        />
+        <SearchForm onSearch={handleSearch} />
         <WorkspaceList />
       </div>
       <SearchSidebar

@@ -1,40 +1,25 @@
-import { NODE_STYLE } from '@/widgets/workspace/model'
+import { useWorkspaceStore } from '@/widgets/workspace/model'
 import { CustomNode } from '@/widgets/workspace/model/types'
+import { NodeMouseHandler } from '@xyflow/react'
 import { useCallback } from 'react'
 
-const useSelectNode = (
-  selectedNode: string | null,
-  setSelectedNode: (id: string | null) => void,
-  setNodes: React.Dispatch<React.SetStateAction<CustomNode[]>>
-) => {
-  const selectNode = useCallback(
-    (nodeId: string) => {
-      let selectedNodeId = null
-      if (selectedNode === nodeId) {
+// 특정 노드를 선택
+const useSelectNode = () => {
+  const { selectedNode, setSelectedNode } = useWorkspaceStore()
+  const onNodeClick: NodeMouseHandler<CustomNode> = useCallback(
+    (event, node) => {
+      // start 노드는 선택 X
+      if (node.id === '1') return
+      // 이미 선택된 노드를 선택
+      if (node.id === selectedNode?.id) {
         setSelectedNode(null)
-      } else {
-        setSelectedNode(nodeId)
-        selectedNodeId = nodeId
+        return
       }
-
-      // 모든 노드의 스타일 초기화
-      // 해당 노드 id는 선택 스타일 적용
-      setNodes((node) =>
-        node.map((n) => ({
-          ...n,
-          style: {
-            ...n.style,
-            border:
-              n.id === selectedNodeId
-                ? NODE_STYLE.selected.border
-                : NODE_STYLE.default.border,
-          },
-        }))
-      )
+      setSelectedNode(node)
     },
-    [selectedNode, setSelectedNode, setNodes]
+    [selectedNode, setSelectedNode]
   )
-  return { selectNode }
+  return { onNodeClick }
 }
 
 export default useSelectNode

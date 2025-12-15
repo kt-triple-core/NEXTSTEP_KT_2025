@@ -1,13 +1,12 @@
 import { Button } from '@/shared/ui'
 import { useState } from 'react'
-import { SelectedNodeToolbar } from '../../selectNode/ui'
 
 interface SearchFormProps {
   onSearch: (searchKeyword: string) => void
   onRecommendation?: (techName: string) => void // AI 추천 핸들러 추가
 }
 
-const SearchForm = ({ onSearch, onRecommendation }: SearchFormProps) => {
+const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [searchKeyword, setSearchKeyword] = useState<string>('')
 
   const handleSearch = () => {
@@ -19,7 +18,6 @@ const SearchForm = ({ onSearch, onRecommendation }: SearchFormProps) => {
 
   return (
     <div className="absolute bottom-30 left-1/2 w-full max-w-450 -translate-x-1/2 px-30">
-      <SelectedNodeToolbar onRecommendation={onRecommendation} />
       <div className="bg-primary flex h-auto rounded-md p-5">
         <input
           type="text"
