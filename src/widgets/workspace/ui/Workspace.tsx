@@ -10,9 +10,11 @@ import { useOpen } from '@/shared/model'
 import WorkspaceList from './WorkspaceList'
 import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { useAddNode } from '@/features/roadmap/addNode/model'
+import { useConnectNodes } from '@/features/roadmap/connectNodes/model'
 
 const Workspace = () => {
   const { nodes, onNodesChange, edges, selectedNode } = useWorkspaceStore()
+  const nodeOrigin: [number, number] = [0.5, 0]
   const {
     isOpen: isSidebarOpen,
     open: openSidebar,
@@ -49,6 +51,8 @@ const Workspace = () => {
   const { onNodeClick } = useSelectNode()
   // 노드 추가 이벤트
   const { onConnectEnd } = useAddNode()
+  // 노드 연결 이벤트
+  const { onConnect } = useConnectNodes()
 
   // 노드 선택됐을 때 사이드바 열기
   useEffect(() => {
@@ -113,6 +117,8 @@ const Workspace = () => {
           onNodeClick={onNodeClick}
           onConnectEnd={onConnectEnd}
           onNodesChange={onNodesChange}
+          onConnect={onConnect}
+          nodeOrigin={nodeOrigin}
           className={`h-full w-full`}
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
