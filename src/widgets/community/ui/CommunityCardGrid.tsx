@@ -1,34 +1,40 @@
 'use client'
 
-import CommunityCard from './CommunityCard'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import CommunityCard from './CommunityCard'
 
-const dummyPosts = [
-  { id: 1, title: 'React 상태관리 뭐 써야 하나요?' },
-  { id: 2, title: '백엔드 취업 준비 로드맵 공유합니다.' },
-  { id: 3, title: 'CS 공부 어떻게 시작하셨나요?' },
-  { id: 4, title: 'Next.js App Router 정리 글' },
-  { id: 5, title: '사이드 프로젝트 팀원 모집합니다.' },
-  { id: 6, title: '프로젝트 코드 리뷰 받고 싶어요.' },
-  { id: 7, title: 'React 상태관리 뭐 써야 하나요?' },
-  { id: 8, title: '백엔드 취업 준비 로드맵 공유합니다.' },
-  { id: 9, title: 'CS 공부 어떻게 시작하셨나요?' },
-  { id: 10, title: 'Next.js App Router 정리 글' },
-  { id: 11, title: '사이드 프로젝트 팀원 모집합니다.' },
-  { id: 12, title: '프로젝트 코드 리뷰 받고 싶어요.' },
-]
+type Post = {
+  posts_id: string
+  title: string
+  nodes: any[]
+  edges: any[]
+}
 
 export default function CommunityCardGrid() {
   const router = useRouter()
+  const [posts, setPosts] = useState<Post[]>([])
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const res = await fetch('/api/community/posts')
+      const json = await res.json()
+      setPosts(json.data)
+    }
+
+    fetchPosts()
+  }, [])
 
   return (
     <div className="grid gap-150 md:grid-cols-2 xl:grid-cols-2">
-      {dummyPosts.map((post) => (
+      {posts.map((post) => (
         <CommunityCard
-          key={post.id}
+          key={post.posts_id}
           title={post.title}
+          nodes={post.nodes}
+          edges={post.edges}
           onClick={() => {
-            router.push(`/community/${post.id}`)
+            router.push(`/community/${post.posts_id}`)
           }}
         />
       ))}

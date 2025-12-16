@@ -1,28 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
 
+// 커뮤니티 카드 목록 조회
+export const GET = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(
+        `
+        posts_id,
+        title,
+        nodes,
+        edges,
+        like_count,
+        created_at
+      `
+      )
+      .eq('status', true)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ data })
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// 기존 POST (그대로 유지)
 export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json()
     const { userId, workspaceId, title, content, nodes, edges } = body
 
-    // 워크스페이스 제목이 있을 때 저장
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
     }
 
-    let newWorkspaceData: {
-      workspace_id: string
-      title: string
-      created_at: string
-    } = {
+    let newWorkspaceData = {
       workspace_id: '',
       title: '',
       created_at: '',
     }
-    // Supabase에 업데이트(workspaces)
+
     if (workspaceId) {
-      const { data: workspaceData, error: workspaceError } = await supabase
+      const { data, error } = await supabase
         .from('workspaces')
         .update({
           title: title.trim(),
@@ -33,21 +62,10 @@ export const POST = async (req: NextRequest) => {
         .select()
         .single()
 
-      if (workspaceError) {
-        console.error('Supabase error:', workspaceError)
-        return NextResponse.json(
-          {
-            error: 'Failed to create workspace',
-            details: workspaceError.message,
-          },
-          { status: 500 }
-        )
-      }
-      newWorkspaceData = { ...workspaceData }
-    }
-    // Supabase에 저장(workspaces)
-    else {
-      const { data: workspaceData, error: workspaceError } = await supabase
+      if (error) throw error
+      newWorkspaceData = data
+    } else {
+      const { data, error } = await supabase
         .from('workspaces')
         .insert({
           user_id: userId,
@@ -58,26 +76,16 @@ export const POST = async (req: NextRequest) => {
         .select()
         .single()
 
-      if (workspaceError) {
-        console.error('Supabase error:', workspaceError)
-        return NextResponse.json(
-          {
-            error: 'Failed to create workspace',
-            details: workspaceError.message,
-          },
-          { status: 500 }
-        )
-      }
-      newWorkspaceData = { ...workspaceData }
+      if (error) throw error
+      newWorkspaceData = data
     }
 
-    // Supabase에 저장(posts)
     const { data: postData, error: postError } = await supabase
       .from('posts')
       .insert({
         user_id: userId,
         title: title.trim(),
-        content: content,
+        content,
         nodes: nodes || [],
         edges: edges || [],
         list_id: 'a61e69b3-d55d-49da-b614-066dfcdc36be',
@@ -85,16 +93,7 @@ export const POST = async (req: NextRequest) => {
       .select()
       .single()
 
-    if (postError) {
-      console.error('Supabase error:', postError)
-      return NextResponse.json(
-        {
-          error: 'Failed to create workspace',
-          details: postError.message,
-        },
-        { status: 500 }
-      )
-    }
+    if (postError) throw postError
 
     return NextResponse.json({
       success: true,
@@ -102,7 +101,7 @@ export const POST = async (req: NextRequest) => {
         workspaceId: newWorkspaceData.workspace_id,
         title: newWorkspaceData.title,
         createdAt: newWorkspaceData.created_at,
-        postId: postData.post_id,
+        postId: postData.posts_id, // ← 여기 중요
       },
     })
   } catch (error) {
