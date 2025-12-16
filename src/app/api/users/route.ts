@@ -1,5 +1,7 @@
 import { getCurrentUser } from '@/features/user/api/getCurrentUser'
-import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
+import { supabase } from '@/shared/libs/supabaseClient'
+// import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 const MAX_EXPERIENCES_PER_USER = 3
@@ -32,7 +34,7 @@ export async function GET() {
   try {
     const users = await getCurrentUser()
 
-    const { data: experiences, error } = await supabaseAdmin
+    const { data: experiences, error } = await supabase
       .from('experiences')
       .select('experience_id, field, year, created_at')
       .eq('user_id', users.user_id)
@@ -74,7 +76,7 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ message: 'Invalid name' }, { status: 400 })
       }
 
-      const { error } = await supabaseAdmin
+      const { error } = await supabase
         .from('users')
         .update({ name })
         .eq('user_id', users.user_id)
@@ -89,7 +91,7 @@ export async function PATCH(req: Request) {
       const deletes = body.experiences.delete ?? []
 
       // 현재 활성 experiences 개수 체크(최대 3 제한을 안전하게)
-      const { count, error: countError } = await supabaseAdmin
+      const { count, error: countError } = await supabase
         .from('experiences')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', users.user_id)
@@ -116,7 +118,7 @@ export async function PATCH(req: Request) {
 
       // 2-1) delete (soft delete)
       if (deletes.length > 0) {
-        const { error } = await supabaseAdmin
+        const { error } = await supabase
           .from('experiences')
           .update({ status: false })
           .in('experience_id', deletes)
@@ -133,7 +135,7 @@ export async function PATCH(req: Request) {
 
         if (Object.keys(patch).length === 0) continue
 
-        const { error } = await supabaseAdmin
+        const { error } = await supabase
           .from('experiences')
           .update(patch)
           .eq('experience_id', u.experienceId)
@@ -152,20 +154,20 @@ export async function PATCH(req: Request) {
           status: true,
         }))
 
-        const { error } = await supabaseAdmin.from('experiences').insert(rows)
+        const { error } = await supabase.from('experiences').insert(rows)
         if (error) throw error
       }
     }
 
     //  변경 후 최신 데이터 다시 내려주기(프론트 react-query 갱신에 편함)
-    const { data: updatedUser, error: userErr } = await supabaseAdmin
+    const { data: updatedUser, error: userErr } = await supabase
       .from('users')
       .select('user_id, email, name, avatar')
       .eq('user_id', users.user_id)
       .single()
     if (userErr) throw userErr
 
-    const { data: experiences, error: expErr } = await supabaseAdmin
+    const { data: experiences, error: expErr } = await supabase
       .from('experiences')
       .select('experience_id, field, year, created_at')
       .eq('user_id', users.user_id)

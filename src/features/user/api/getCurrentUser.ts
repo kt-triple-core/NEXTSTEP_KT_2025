@@ -1,5 +1,6 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
+import { supabase } from '@/shared/libs/supabaseClient'
+// import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 import { getServerSession } from 'next-auth'
 
 export async function getCurrentUser() {
@@ -11,7 +12,7 @@ export async function getCurrentUser() {
   if (!email) throw new Error('UNAUTHORIZED')
 
   // 1) 먼저 조회 (status=true만)
-  const { data: existing } = await supabaseAdmin
+  const { data: existing } = await supabase
     .from('users')
     .select('user_id, email, name, avatar, status')
     .eq('email', email)
@@ -28,7 +29,7 @@ export async function getCurrentUser() {
   }
 
   // ✅ 없거나 비활성이면: 생성/활성화(upsert)
-  const { data: created, error: upsertErr } = await supabaseAdmin
+  const { data: created, error: upsertErr } = await supabase
     .from('users')
     .upsert(
       { email, name, avatar, status: true },
