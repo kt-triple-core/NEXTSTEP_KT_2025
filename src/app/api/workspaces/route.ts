@@ -37,7 +37,7 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       content: {
-        id: data.workspace_id,
+        workspaceId: data.workspace_id,
         title: data.title,
         createdAt: data.created_at,
       },

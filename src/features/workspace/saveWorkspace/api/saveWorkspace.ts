@@ -17,11 +17,11 @@ const saveWorkspace = async (params: saveWorkspaceParams) => {
   // workspaceId 유무로 POST/PUT 분기
   if (workspaceId) {
     // 업데이트
-    const { data } = await api.put(`/workspace/${workspaceId}`, body)
+    const { data } = await api.put(`/workspaces/${workspaceId}`, body)
     return data.content
   } else {
     // 새로 생성
-    const { data } = await api.post('/workspace', body)
+    const { data } = await api.post('/workspaces', body)
     return data.content
   }
 }
