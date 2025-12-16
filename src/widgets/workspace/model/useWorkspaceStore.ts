@@ -23,6 +23,14 @@ type WorkspaceStore = {
   // 선택된 노드
   selectedNode: CustomNode | null
   setSelectedNode: (node: CustomNode | null) => void
+
+  // 현재 워크스페이스 정보
+  workspaceId: string | null
+  setWorkspaceId: (id: string | null) => void
+  workspaceTitle: string | null
+  setWorkspaceTitle: (title: string | null) => void
+  lastSaved: Date | null
+  setLastSaved: (date: Date | null) => void
 }
 
 const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
@@ -59,6 +67,13 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         },
       })),
     })),
+
+  workspaceId: null,
+  setWorkspaceId: (id) => set({ workspaceId: id }),
+  workspaceTitle: '새 워크스페이스',
+  setWorkspaceTitle: (title) => set({ workspaceTitle: title }),
+  lastSaved: null,
+  setLastSaved: (date) => set({ lastSaved: date }),
 }))
 
 export default useWorkspaceStore

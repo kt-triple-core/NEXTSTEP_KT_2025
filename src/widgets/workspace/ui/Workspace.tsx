@@ -10,6 +10,7 @@ import WorkspaceList from './WorkspaceList'
 import { useAddNode } from '@/features/roadmap/addNode/model'
 import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { useConnectNodes } from '@/features/roadmap/connectNodes/model'
+import { SaveWorkspaceButton } from '@/features/workspace/saveWorkspace/ui'
 
 const Workspace = () => {
   const { nodes, onNodesChange, edges, selectedNode } = useWorkspaceStore()
@@ -105,6 +106,9 @@ const Workspace = () => {
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
         <WorkspaceList />
+        <div className="bg-primary absolute top-10 right-35 flex h-50 gap-10 rounded-md p-8">
+          <SaveWorkspaceButton />
+        </div>
       </div>
       <SearchSidebar
         key={`${selectedNode?.id}-${selectedNode?.data.label}` || ''}
