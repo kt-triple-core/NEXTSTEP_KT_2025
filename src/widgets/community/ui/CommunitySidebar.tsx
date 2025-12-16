@@ -50,7 +50,7 @@ export default function CommunitySidebar({
             <button
               key={item.list_id}
               onClick={() => {
-                router.push(`/community?list=${item.list_id}`)
+                router.push(`/community?list=${item.list_id}&tab=post`)
                 toggleOpen()
               }}
               className={`flex flex-col gap-12 rounded-2xl p-16 text-left shadow-sm transition ${
