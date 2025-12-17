@@ -5,10 +5,8 @@ import { Edge } from '@xyflow/react'
 interface saveWorkspaceParams {
   workspaceId?: string // 있으면 PUT, 없으면 POST
   title: string
-  description?: string
   nodes: CustomNode[]
   edges: Edge[]
-  userId: string
 }
 
 const saveWorkspace = async (params: saveWorkspaceParams) => {

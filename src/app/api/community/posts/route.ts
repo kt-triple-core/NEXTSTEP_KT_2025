@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
+import { requireUser } from '@/shared/libs/requireUser'
 
 export const POST = async (req: NextRequest) => {
   try {
+    const { userId } = await requireUser()
     const body = await req.json()
-    const { userId, workspaceId, title, content, nodes, edges } = body
+    const { workspaceId, title, content, nodes, edges } = body
 
     // 워크스페이스 제목이 있을 때 저장
     if (!title || title.trim() === '') {
