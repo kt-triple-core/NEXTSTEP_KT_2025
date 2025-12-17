@@ -8,7 +8,6 @@ interface postWorkspaceParams {
   content?: string
   nodes: CustomNode[]
   edges: Edge[]
-  userId: string
 }
 
 const postWorkspace = async (params: postWorkspaceParams) => {
