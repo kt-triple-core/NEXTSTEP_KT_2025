@@ -35,7 +35,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 🔹 사이드바 */}
-      <aside
+      <div
         className="fixed right-0 z-40"
         style={{
           top: `${HEADER_HEIGHT}px`,
@@ -44,7 +44,7 @@ export default function CommunityPage() {
         }}
       >
         <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
-      </aside>
+      </div>
       <div
         className="shrink-0 transition-[width] duration-300"
         style={{

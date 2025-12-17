@@ -24,7 +24,7 @@ type Post = {
 const CommunityPage = () => {
   const { id } = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const listId = searchParams.get('list') // ⭐ 분야
+  const listId = searchParams.get('list')
   const [resolvedListId, setResolvedListId] = useState<string | null>(null)
   const router = useRouter()
   const { isOpen, toggleOpen } = useOpen()
@@ -41,7 +41,7 @@ const CommunityPage = () => {
   const bgColor = isDark ? '#1f2937' : '#e5e5e5'
   const gridColor = isDark ? '#374151' : '#d1d5db'
 
-  // ✅ 분야 기준으로 카드 목록 fetch
+  // 분야 기준으로 카드 목록 fetch
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -85,8 +85,8 @@ const CommunityPage = () => {
 
         const matched = lists.find(
           (l: any) =>
-            l.list_id === listId || // 이미 uuid인 경우
-            l.name.toLowerCase() === listId.toLowerCase() // name인 경우
+            l.list_id === listId ||
+            l.name.toLowerCase() === listId.toLowerCase()
         )
 
         setResolvedListId(matched?.list_id ?? null)
