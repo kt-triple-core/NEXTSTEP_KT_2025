@@ -4,13 +4,14 @@ import { Button } from '@/shared/ui'
 import { List } from '@/shared/ui/icon'
 import { WorkspaceListItem } from '../model/types'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
-import { useRouter } from 'next/navigation'
-import { useWorkspaceStore } from '../model'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const WorkspaceList = () => {
   const { isOpen, toggleOpen } = useOpen()
-  const { workspaceId } = useWorkspaceStore()
   const { data } = useGetWorkspaceList()
+
+  const searchParams = useSearchParams()
+  const currentWorkspaceId = searchParams.get('workspace')
 
   const router = useRouter()
 
@@ -39,7 +40,7 @@ const WorkspaceList = () => {
       >
         <div className="flex flex-col justify-between gap-10 p-10">
           <div
-            className={`w-full rounded-lg p-10 hover:cursor-pointer ${workspaceId === null ? 'bg-accent' : 'bg-secondary'}`}
+            className={`w-full rounded-lg p-10 hover:cursor-pointer ${currentWorkspaceId === null ? 'bg-accent' : 'bg-secondary'}`}
             onClick={() => handleSelectWorkspace(null)}
           >
             빈 워크스페이스
@@ -47,7 +48,7 @@ const WorkspaceList = () => {
           {data &&
             data.map((item: WorkspaceListItem) => (
               <div
-                className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === workspaceId ? 'bg-accent' : 'bg-secondary'}`}
+                className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === currentWorkspaceId ? 'bg-accent' : 'bg-secondary'}`}
                 key={item.workspaceId}
                 onClick={() => handleSelectWorkspace(item.workspaceId)}
               >

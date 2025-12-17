@@ -10,6 +10,7 @@ export const GET = async () => {
       .from('workspaces')
       .select('*')
       .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
 
     if (error) {
       return NextResponse.json(

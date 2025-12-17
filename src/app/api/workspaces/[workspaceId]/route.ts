@@ -90,6 +90,7 @@ export async function PUT(
         title: title.trim(),
         nodes: nodes || [],
         edges: edges || [],
+        updated_at: new Date().toISOString(),
       })
       .eq('workspace_id', workspaceId)
       .select()
