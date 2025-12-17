@@ -1,16 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Close } from '@/shared/ui/icon'
-import ExternalLink from '@/shared/ui/icon/ExternalLink'
-import CommunitySidebar from '@/widgets/community/ui/CommunitySidebar'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  ExternalLink,
+} from '@/shared/ui/icon'
 
 interface Article {
+  article_id: string
   title: string
   summary: string
   source: string
   published_at: string
   link: string
+  list: string
 }
 
 interface Props {
@@ -25,20 +32,57 @@ export default function CommunityNewsDetail({
   toggleOpen,
 }: Props) {
   const [article, setArticle] = useState<Article | null>(null)
+  const [listArticles, setListArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    const fetchArticle = async () => {
-      const res = await fetch(`/api/community/news/${articleId}`)
-      const data = await res.json()
-      setArticle(data)
-      setLoading(false)
+    const fetchArticleAndList = async () => {
+      try {
+        // 현재 글 가져오기
+        const res = await fetch(`/api/community/news/${articleId}`)
+        const data: Article = await res.json()
+        setArticle(data)
+
+        // 같은 리스트 내 글 가져오기
+        const listRes = await fetch(`/api/community/news?list=${data.list}`)
+        const listData = await listRes.json()
+        setListArticles(Array.isArray(listData) ? listData : [])
+      } catch (err) {
+        console.error(err)
+        toast.error('게시글을 불러오는데 실패했습니다.')
+      } finally {
+        setLoading(false)
+      }
     }
-    fetchArticle()
+
+    fetchArticleAndList()
   }, [articleId])
+
+  // 링크 복사
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      toast.success('현재 페이지 링크가 복사되었습니다!')
+    } catch {
+      toast.error('링크 복사에 실패했습니다.')
+    }
+  }
 
   if (loading) return <p className="text-foreground-light p-40">Loading...</p>
   if (!article) return <p className="p-40 text-red-500">Article not found</p>
+
+  // 현재 글 위치 계산
+  const currentIndex = Array.isArray(listArticles)
+    ? listArticles.findIndex((a) => a.article_id === article.article_id)
+    : -1
+
+  const prevId =
+    currentIndex > 0 ? listArticles[currentIndex - 1].article_id : null
+  const nextId =
+    currentIndex >= 0 && currentIndex < listArticles.length - 1
+      ? listArticles[currentIndex + 1].article_id
+      : null
 
   return (
     <div className="flex">
@@ -47,18 +91,49 @@ export default function CommunityNewsDetail({
           {/* 헤더 */}
           <div className="point-gradient flex items-center justify-between rounded-tl-xl rounded-tr-xl px-24 py-12">
             <div className="flex gap-8">
-              <button className="bg-secondary text-foreground hover:bg-secondary/70 rounded-lg px-12 py-6 shadow-sm transition-colors">
+              {/* 이전 글 */}
+              <button
+                disabled={!prevId}
+                onClick={() =>
+                  prevId && router.push(`/community/news/${prevId}`)
+                }
+                className={`bg-secondary text-foreground hover:bg-secondary/70 cursor-pointer rounded-lg px-12 py-6 shadow-sm transition-colors ${
+                  !prevId ? 'cursor-not-allowed opacity-50' : ''
+                }`}
+              >
                 <ChevronLeft />
               </button>
-              <button className="bg-secondary text-foreground hover:bg-secondary/70 rounded-lg px-12 py-6 shadow-sm transition-colors">
+
+              {/* 다음 글 */}
+              <button
+                disabled={!nextId}
+                onClick={() =>
+                  nextId && router.push(`/community/news/${nextId}`)
+                }
+                className={`bg-secondary text-foreground hover:bg-secondary/70 cursor-pointer rounded-lg px-12 py-6 shadow-sm transition-colors ${
+                  !nextId ? 'cursor-not-allowed opacity-50' : ''
+                }`}
+              >
                 <ChevronRight />
               </button>
             </div>
+
             <div className="flex gap-8">
-              <button className="bg-secondary text-foreground hover:bg-secondary/70 rounded-lg px-12 py-6 shadow-sm transition-colors">
+              {/* 링크 복사 */}
+              <button
+                onClick={handleCopyLink}
+                className="bg-secondary text-foreground hover:bg-secondary/70 cursor-pointer rounded-lg px-12 py-6 shadow-sm transition-colors"
+              >
                 <ExternalLink />
               </button>
-              <button className="bg-secondary text-foreground hover:bg-secondary/70 rounded-lg px-12 py-6 shadow-sm transition-colors">
+
+              {/* 닫기 */}
+              <button
+                onClick={() =>
+                  router.push(`/community?list=${article.list}&tab=news`)
+                }
+                className="bg-secondary text-foreground hover:bg-secondary/70 cursor-pointer rounded-lg px-12 py-6 shadow-sm transition-colors"
+              >
                 <Close />
               </button>
             </div>
@@ -85,19 +160,9 @@ export default function CommunityNewsDetail({
                   {article.summary}
                 </p>
               </div>
-              <div className="absolute right-24 bottom-16 flex flex-col gap-8">
-                <a
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-accent hover:bg-accent/90 rounded-lg px-16 py-8 text-sm text-white shadow transition-colors"
-                >
-                  원문 보러가기
-                </a>
-              </div>
             </div>
 
-            {/* 댓글 영역 */}
+            {/* 댓글 */}
             <div className="flex flex-col gap-12">
               <p className="font-semibold">댓글 (0)</p>
               <p className="text-foreground-light text-sm">
@@ -108,8 +173,8 @@ export default function CommunityNewsDetail({
         </div>
       </div>
 
-      {/* 사이드바 */}
-      <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
+      {/* 사이드바 - CommunitySidebar 컴포넌트가 있다고 가정 */}
+      {/* <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} /> */}
     </div>
   )
 }
