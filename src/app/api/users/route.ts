@@ -1,7 +1,6 @@
 import { supabase } from '@/shared/libs/supabaseClient'
-import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { requireUser } from '@/shared/libs/requireUser'
 
 const MAX_EXPERIENCES_PER_USER = 3
 
@@ -31,11 +30,7 @@ function validateYear(year: number) {
 // GET: 사용자 프로필 + 커리어 리스트 조회
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const userId = session.user.userId
+    const { userId } = await requireUser()
 
     // 사용자 정보 조회
     const { data: user, error: userErr } = await supabase
@@ -80,11 +75,7 @@ export async function GET() {
 // PATCH: 사용자 프로필(이름) 및 커리어 리스트 수정
 export async function PATCH(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const userId = session.user.userId
+    const { userId } = await requireUser()
 
     //  비활성/없는 유저 방지 (PATCH는 특히 더 안전하게)
     const { data: user, error: userErr } = await supabase
