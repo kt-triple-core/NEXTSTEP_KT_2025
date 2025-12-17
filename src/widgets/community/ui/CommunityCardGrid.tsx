@@ -16,32 +16,57 @@ type Post = {
   }
 }
 
-export default function CommunityCardGrid() {
+interface CommunityCardGridProps {
+  listId?: string | null
+}
+
+export default function CommunityCardGrid({ listId }: CommunityCardGridProps) {
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch('/api/community/posts')
+        setLoading(true)
+
+        const res = await fetch(
+          listId
+            ? `/api/community/posts?list=${listId}`
+            : `/api/community/posts`
+        )
 
         const json = await res.json()
 
         // ✅ 무조건 배열로 보정
         const list: Post[] = Array.isArray(json) ? json : []
-
         setPosts(list)
       } catch (e) {
         console.error(e)
-        setPosts([]) // 실패해도 map 안 터지게
+        setPosts([])
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchPosts()
-  }, [])
+  }, [listId]) // ⭐ listId 바뀔 때마다 다시 fetch
 
-  // ✅ 렌더 방어 (중요)
-  if (!Array.isArray(posts)) return null
+  // 🔹 로딩 중
+  if (loading) {
+    return (
+      <p className="text-foreground-light py-40 text-center">불러오는 중...</p>
+    )
+  }
+
+  // 🔹 해당 list에 글이 없는 경우
+  if (posts.length === 0) {
+    return (
+      <p className="text-foreground-light py-40 text-center">
+        아직 등록된 글이 없습니다.
+      </p>
+    )
+  }
 
   return (
     <div className="grid gap-150 md:grid-cols-2 xl:grid-cols-2">

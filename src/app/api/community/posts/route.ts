@@ -3,9 +3,12 @@ import { supabase } from '@/shared/libs/supabaseClient'
 import { requireUser } from '@/shared/libs/requireUser'
 
 // 커뮤니티 카드 목록 조회
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
-    const { data, error } = await supabase
+    const { searchParams } = new URL(req.url)
+    const listId = searchParams.get('list')
+
+    let query = supabase
       .from('posts')
       .select(
         `
@@ -25,6 +28,12 @@ export const GET = async () => {
       .eq('status', true)
       .order('created_at', { ascending: false })
 
+    // ⭐ list 버튼을 눌렀을 때만 필터링
+    if (listId) {
+      query = query.eq('list_id', listId)
+    }
+
+    const { data, error } = await query
     if (error) throw error
 
     return NextResponse.json(data)
