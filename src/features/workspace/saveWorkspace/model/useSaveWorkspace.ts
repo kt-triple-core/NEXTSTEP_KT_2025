@@ -18,7 +18,6 @@ const useSaveWorkspace = () => {
         title: workspaceTitle,
         nodes,
         edges,
-        userId: '9c390fc6-5724-4ccb-bf46-16564e2481b3',
       })
     },
 

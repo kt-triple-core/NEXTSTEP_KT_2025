@@ -1,8 +1,6 @@
-import { getCurrentUser } from '@/features/user/api/getCurrentUser'
 import { supabase } from '@/shared/libs/supabaseClient'
-// import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
-import { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { requireUser } from '@/shared/libs/requireUser'
 
 const MAX_EXPERIENCES_PER_USER = 3
 
@@ -32,33 +30,44 @@ function validateYear(year: number) {
 // GET: 사용자 프로필 + 커리어 리스트 조회
 export async function GET() {
   try {
-    const users = await getCurrentUser()
+    const { userId } = await requireUser()
 
-    const { data: experiences, error } = await supabase
+    // 사용자 정보 조회
+    const { data: user, error: userErr } = await supabase
+      .from('users')
+      .select('user_id, email, name, avatar, status')
+      .eq('user_id', userId)
+      .eq('status', true)
+      .single()
+    if (userErr || !user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+    }
+    if (user.status !== true) {
+      return NextResponse.json({ message: 'User inactive' }, { status: 403 })
+    }
+
+    // 커리어 리스트 조회
+    const { data: experiences, error: expErr } = await supabase
       .from('experiences')
       .select('experience_id, field, year, created_at')
-      .eq('user_id', users.user_id)
+      .eq('user_id', userId)
       .eq('status', true)
       .order('created_at', { ascending: true })
 
-    if (error) throw error
+    if (expErr) throw expErr
 
     return NextResponse.json({
-      userId: users.user_id,
-      email: users.email,
-      name: users.name,
-      avatar: users.avatar,
+      userId: user.user_id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
       experiences: (experiences ?? []).map((e) => ({
         experienceId: e.experience_id,
         field: e.field,
         year: e.year,
       })),
     })
-  } catch (e: any) {
-    if (e.message === 'UNAUTHORIZED')
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    if (e.message === 'USER_NOT_FOUND')
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+  } catch (e) {
     return NextResponse.json({ message: 'Server error' }, { status: 500 })
   }
 }
@@ -66,7 +75,22 @@ export async function GET() {
 // PATCH: 사용자 프로필(이름) 및 커리어 리스트 수정
 export async function PATCH(req: Request) {
   try {
-    const users = await getCurrentUser()
+    const { userId } = await requireUser()
+
+    //  비활성/없는 유저 방지 (PATCH는 특히 더 안전하게)
+    const { data: user, error: userErr } = await supabase
+      .from('users')
+      .select('user_id, status')
+      .eq('user_id', userId)
+      .single()
+
+    if (userErr || !user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+    }
+    if (user.status !== true) {
+      return NextResponse.json({ message: 'User inactive' }, { status: 403 })
+    }
+
     const body = (await req.json()) as PatchBody
 
     //  1) 이름 업데이트(옵션) — name만 보내도 동작
@@ -79,7 +103,7 @@ export async function PATCH(req: Request) {
       const { error } = await supabase
         .from('users')
         .update({ name })
-        .eq('user_id', users.user_id)
+        .eq('user_id', userId)
 
       if (error) throw error
     }
@@ -94,7 +118,7 @@ export async function PATCH(req: Request) {
       const { count, error: countError } = await supabase
         .from('experiences')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', users.user_id)
+        .eq('user_id', userId)
         .eq('status', true)
 
       if (countError) throw countError
@@ -122,7 +146,7 @@ export async function PATCH(req: Request) {
           .from('experiences')
           .update({ status: false })
           .in('experience_id', deletes)
-          .eq('user_id', users.user_id) //  본인것만
+          .eq('user_id', userId) //  본인것만
 
         if (error) throw error
       }
@@ -139,7 +163,7 @@ export async function PATCH(req: Request) {
           .from('experiences')
           .update(patch)
           .eq('experience_id', u.experienceId)
-          .eq('user_id', users.user_id)
+          .eq('user_id', userId)
           .eq('status', true)
 
         if (error) throw error
@@ -148,7 +172,7 @@ export async function PATCH(req: Request) {
       // 2-3) create
       if (creates.length > 0) {
         const rows = creates.map((c) => ({
-          user_id: users.user_id,
+          user_id: userId,
           field: validateField(c.field),
           year: validateYear(c.year),
           status: true,
@@ -160,17 +184,23 @@ export async function PATCH(req: Request) {
     }
 
     //  변경 후 최신 데이터 다시 내려주기(프론트 react-query 갱신에 편함)
-    const { data: updatedUser, error: userErr } = await supabase
+    const { data: updatedUser, error: updatedErr } = await supabase
       .from('users')
-      .select('user_id, email, name, avatar')
-      .eq('user_id', users.user_id)
+      .select('user_id, email, name, avatar, status')
+      .eq('user_id', userId)
       .single()
-    if (userErr) throw userErr
+
+    if (updatedErr || !updatedUser) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+    }
+    if (updatedUser.status !== true) {
+      return NextResponse.json({ message: 'User inactive' }, { status: 403 })
+    }
 
     const { data: experiences, error: expErr } = await supabase
       .from('experiences')
       .select('experience_id, field, year, created_at')
-      .eq('user_id', users.user_id)
+      .eq('user_id', userId)
       .eq('status', true)
       .order('created_at', { ascending: true })
     if (expErr) throw expErr
@@ -188,15 +218,12 @@ export async function PATCH(req: Request) {
       })),
     })
   } catch (e: any) {
-    if (e.message === 'UNAUTHORIZED')
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-
-    if (e.message === 'INVALID_FIELD')
+    if (e?.message === 'INVALID_FIELD') {
       return NextResponse.json({ message: 'Invalid field' }, { status: 400 })
-
-    if (e.message === 'INVALID_YEAR')
+    }
+    if (e?.message === 'INVALID_YEAR') {
       return NextResponse.json({ message: 'Invalid year' }, { status: 400 })
-
+    }
     return NextResponse.json({ message: 'Server error' }, { status: 500 })
   }
 }

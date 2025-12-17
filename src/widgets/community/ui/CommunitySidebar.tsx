@@ -25,6 +25,9 @@ export default function CommunitySidebar({
 
   useEffect(() => {
     const fetchCommunityList = async () => {
+      const res = await fetch('/api/community/lists')
+      const data = await res.json()
+      setCommunityList(data)
       const res = await fetch('/api/community/list')
       const list: Community[] = await res.json() // ⭐ 배열 그대로
       setCommunityList(list)

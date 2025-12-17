@@ -4,10 +4,13 @@ import CommunityCardGrid from '@/widgets/community/ui/CommunityCardGrid'
 import CommunitySidebar from '@/widgets/community/ui/CommunitySidebar'
 import useOpen from '@/shared/model/useOpen'
 import CommunityTabs from '@/features/community/ui/CommunityTabs'
+import CommunityNewsList from '@/widgets/community/ui/CommunityNewsList'
+import { useSearchParams } from 'next/navigation'
 
 export default function CommunityPage() {
   const { isOpen, toggleOpen } = useOpen()
-
+  const searchParams = useSearchParams()
+  const tab = searchParams.get('tab') || 'post'
   return (
     <div className="flex w-full overflow-x-hidden">
       <div className="w-full">
@@ -15,7 +18,7 @@ export default function CommunityPage() {
         {/* 커뮤니티 카드 영역 */}
         <div className="flex flex-1 justify-center py-60">
           <div className="w-full max-w-[1200px] px-24">
-            <CommunityCardGrid />
+            {tab === 'news' ? <CommunityNewsList /> : <CommunityCardGrid />}
           </div>
         </div>
       </div>

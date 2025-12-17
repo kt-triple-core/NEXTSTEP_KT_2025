@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
+import { requireUser } from '@/shared/libs/requireUser'
 
 // 커뮤니티 카드 목록 조회
 export const GET = async () => {
@@ -37,8 +38,9 @@ export const GET = async () => {
 // 기존 POST (그대로 유지)
 export const POST = async (req: NextRequest) => {
   try {
+    const { userId } = await requireUser()
     const body = await req.json()
-    const { userId, workspaceId, title, content, nodes, edges } = body
+    const { workspaceId, title, content, nodes, edges } = body
 
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
