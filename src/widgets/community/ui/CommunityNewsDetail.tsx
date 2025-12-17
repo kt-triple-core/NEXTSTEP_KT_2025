@@ -10,6 +10,7 @@ import {
   ExternalLink,
 } from '@/shared/ui/icon'
 import CommunitySidebar from './CommunitySidebar'
+import CommentSection from '@/features/community/ui/CommentSection'
 
 interface Article {
   article_id: string
@@ -40,15 +41,20 @@ export default function CommunityNewsDetail({
   useEffect(() => {
     const fetchArticleAndList = async () => {
       try {
+        setLoading(true)
+
         // 현재 글 가져오기
         const res = await fetch(`/api/community/news/${articleId}`)
+        if (!res.ok) throw new Error('Failed to fetch article')
         const data: Article = await res.json()
         setArticle(data)
 
         // 같은 리스트 내 글 가져오기
         const listRes = await fetch(`/api/community/news?list=${data.list}`)
-        const listData = await listRes.json()
-        setListArticles(Array.isArray(listData) ? listData : [])
+        if (listRes.ok) {
+          const listData = await listRes.json()
+          setListArticles(Array.isArray(listData) ? listData : [])
+        }
       } catch (err) {
         console.error(err)
         toast.error('게시글을 불러오는데 실패했습니다.')
@@ -164,12 +170,7 @@ export default function CommunityNewsDetail({
             </div>
 
             {/* 댓글 */}
-            <div className="flex flex-col gap-12">
-              <p className="font-semibold">댓글 (0)</p>
-              <p className="text-foreground-light text-sm">
-                아직 댓글이 없습니다.
-              </p>
-            </div>
+            <CommentSection articleId={articleId} />
           </div>
         </div>
       </div>

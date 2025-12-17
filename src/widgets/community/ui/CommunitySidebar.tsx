@@ -13,13 +13,20 @@ export default function CommunitySidebar({
   isOpen,
   toggleOpen,
 }: CommunitySidebarProps) {
-  const { data: communityList, isLoading, error } = useCommunityList()
+  const [communityList, setCommunityList] = useState<Community[]>([])
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentList = searchParams.get('list')
 
-  if (isLoading) return <p className="p-16">Loading...</p>
-  if (error) return <p className="p-16 text-red-500">{error.message}</p>
+  useEffect(() => {
+    const fetchCommunityList = async () => {
+      const res = await fetch('/api/community/lists')
+      const data = await res.json()
+      setCommunityList(data)
+    }
+
+    fetchCommunityList()
+  }, [])
 
   return (
     <Sidebar isOpen={isOpen} toggleOpen={toggleOpen}>
@@ -56,6 +63,8 @@ export default function CommunitySidebar({
                   className={`h-30 w-30 rounded-full ${isActive ? 'bg-white/30' : 'bg-accent'}`}
                 />
               </div>
+
+              {/* 하단 (UI 유지용 – 실데이터 붙이기 전) */}
               <p
                 className={`text-12 ${isActive ? 'text-white/80' : 'text-foreground-light'}`}
               >
@@ -68,3 +77,4 @@ export default function CommunitySidebar({
     </Sidebar>
   )
 }
+export default CommunitySidebar
