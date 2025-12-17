@@ -1,4 +1,4 @@
-// api/users/me/route.ts
+// [경로] api/users/me/route.ts
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { supabase } from '@/shared/libs/supabaseClient'
