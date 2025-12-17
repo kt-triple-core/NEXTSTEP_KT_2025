@@ -7,25 +7,51 @@ import CommunityTabs from '@/features/community/ui/CommunityTabs'
 import CommunityNewsList from '@/widgets/community/ui/CommunityNewsList'
 import { useSearchParams } from 'next/navigation'
 
+const SIDEBAR_WIDTH = 300
+const HEADER_HEIGHT = 80
+
 export default function CommunityPage() {
   const { isOpen, toggleOpen } = useOpen()
   const searchParams = useSearchParams()
+
   const tab = searchParams.get('tab') || 'post'
+  const listId = searchParams.get('list')
+
   return (
-    <div className="flex w-full overflow-x-hidden">
+    <div className="relative flex w-full overflow-x-hidden">
+      {/* 메인 영역 */}
       <div className="w-full">
         <CommunityTabs />
-        {/* 커뮤니티 카드 영역 */}
-        <div className="flex flex-1 justify-center py-60">
+
+        <div className="flex justify-center py-60">
           <div className="w-full max-w-[1200px] px-24">
-            {tab === 'news' ? <CommunityNewsList /> : <CommunityCardGrid />}
+            {tab === 'news' ? (
+              <CommunityNewsList />
+            ) : (
+              <CommunityCardGrid listId={listId} />
+            )}
           </div>
         </div>
       </div>
 
-      {/* 커뮤니티 전용 사이드바 */}
-      <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
-      {/* <div className="flex"></div> */}
+      {/* 🔹 사이드바 */}
+      <aside
+        className="fixed right-0 z-40"
+        style={{
+          top: `${HEADER_HEIGHT}px`,
+          height: `calc(100dvh - ${HEADER_HEIGHT}px)`,
+          overflow: 'visible',
+        }}
+      >
+        <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
+      </aside>
+      <div
+        className="shrink-0 transition-[width] duration-300"
+        style={{
+          width: isOpen ? `${SIDEBAR_WIDTH}px` : '0px',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   )
 }

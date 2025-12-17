@@ -2,13 +2,26 @@ import Header from '@/widgets/header/ui/Header'
 
 export default function MainLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <div className="flex h-dvh max-h-dvh w-full flex-col">
-      <Header />
-      <main className="h-full w-full">{children}</main>
+    <div className="h-dvh w-full overflow-hidden">
+      {/* Header (고정) */}
+      <header className="fixed top-0 left-0 z-50 h-80 w-full">
+        <Header />
+      </header>
+
+      {/* Content 영역 */}
+      <main
+        className="w-full overflow-y-auto"
+        style={{
+          marginTop: '80px', // 헤더 높이
+          height: 'calc(100dvh - 80px)',
+        }}
+      >
+        {children}
+      </main>
     </div>
   )
 }
