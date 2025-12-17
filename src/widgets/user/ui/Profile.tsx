@@ -26,7 +26,7 @@ const Profile = () => {
   return (
     <main className="flex gap-80 px-50 py-30">
       <div>
-        <div className="relative inline-block">
+        <div className="relative inline-block w-250">
           <ProfileAvatar
             name={session.user.name}
             image={session.user.image}
@@ -39,12 +39,12 @@ const Profile = () => {
       </div>
       <section className="flex-1 shadow-lg">
         <div className="flex h-full flex-col rounded-md bg-white">
-          <div className="h-30 rounded-t-md bg-gradient-to-r from-purple-500 to-purple-700" />
+          <div className="h-30 rounded-t-md bg-gradient-to-r from-[#6e5aef] to-[#8840ec]" />
 
           {/* 안쪽 컨텐츠  */}
-          <div className="mr-50 p-50">
+          <div className="p-60 px-80">
             {/* 내 정보 수정 */}
-            <section className="flex justify-between">
+            <section className="flex flex-col justify-between lg:flex-row">
               <h2 className="text-xl font-semibold">내 정보 수정</h2>
               <MyInfo />
             </section>

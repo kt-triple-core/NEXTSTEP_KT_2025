@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 import Quest from '@/widgets/user/ui/Quest'
 import Shop from '@/widgets/user/ui/Shop'
 import Profile from '@/widgets/user/ui/Profile'
-import TAB_LIST from '@/features/user/model/constants'
+import TAB_LIST from '@/widgets/user/model/constants'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const UsersTabs = () => {
