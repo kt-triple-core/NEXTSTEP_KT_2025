@@ -51,7 +51,7 @@ const Profile = () => {
     e.target.value = ''
   }
   return (
-    <main className="flex gap-80 px-50 py-30">
+    <main className="flex gap-80 px-50 pt-20">
       <div>
         <div className="relative inline-block w-250">
           <ProfileAvatar

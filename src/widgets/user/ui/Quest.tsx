@@ -154,7 +154,7 @@ const Quest = () => {
   }
 
   return (
-    <main className="flex gap-80 px-50 py-30">
+    <main className="flex gap-80 px-50 pt-20">
       <section className="flex-1 shadow-lg">
         <div className="flex h-full flex-col rounded-md bg-white dark:bg-[#313b51]">
           <div className="flex items-center justify-between rounded-t-md bg-gradient-to-r from-[#6e5aef] to-[#8840ec] px-50 py-40">
