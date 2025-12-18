@@ -1,14 +1,57 @@
+import { requireUser } from '@/shared/libs/requireUser'
 import { supabase } from '@/shared/libs/supabaseClient'
 import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { workspaceId: string } }
+) {
+  try {
+    const { userId } = await requireUser()
+
+    const { workspaceId } = await params
+    const { data, error } = await supabase
+      .from('workspaces')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .single()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Workspace not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      content: {
+        workspaceId: data.workspace_id,
+        title: data.title,
+        nodes: data.nodes,
+        edges: data.edges,
+        updatedAd: data.updated_at,
+      },
+    })
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { workspaceId: string } }
 ) {
   try {
+    const { userId } = await requireUser()
     const { workspaceId } = await params
     const body = await req.json()
-    const { userId, title, nodes, edges } = body
+    const { title, nodes, edges } = body
 
     // 입력 검증
     if (!workspaceId) {
@@ -47,6 +90,7 @@ export async function PUT(
         title: title.trim(),
         nodes: nodes || [],
         edges: edges || [],
+        updated_at: new Date().toISOString(),
       })
       .eq('workspace_id', workspaceId)
       .select()

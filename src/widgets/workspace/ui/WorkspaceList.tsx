@@ -1,15 +1,30 @@
+import { useGetWorkspaceList } from '@/features/workspace/getWorkspaceList/model'
 import { useOpen } from '@/shared/model'
 import { Button } from '@/shared/ui'
 import { List } from '@/shared/ui/icon'
+import { WorkspaceListItem } from '../model/types'
+import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-const DATA = [
-  { workspaceId: 1, title: '프론트엔드 로드맵1', updatedAt: '2025-12-11' },
-  { workspaceId: 2, title: '프론트엔드 로드맵2', updatedAt: '2025-12-11' },
-  { workspaceId: 3, title: '프론트엔드 로드맵3', updatedAt: '2025-12-12' },
-  { workspaceId: 4, title: '프론트엔드 로드맵4', updatedAt: '2025-12-12' },
-]
 const WorkspaceList = () => {
   const { isOpen, toggleOpen } = useOpen()
+  const { data } = useGetWorkspaceList()
+
+  const searchParams = useSearchParams()
+  const currentWorkspaceId = searchParams.get('workspace')
+
+  const router = useRouter()
+
+  // workspaceId를 쿼리에 넣는 함수
+  const handleSelectWorkspace = (id: string | null) => {
+    const query = new URLSearchParams(window.location.search)
+    if (id) {
+      query.set('workspace', id)
+    } else {
+      query.delete('workspace')
+    }
+    router.push(`${window.location.pathname}?${query.toString()}`)
+  }
 
   return (
     <div className="absolute top-10 bottom-10 left-10 flex w-200 flex-col gap-10">
@@ -23,13 +38,26 @@ const WorkspaceList = () => {
       <div
         className={`bg-primary overflow-y-auto rounded-md ${isOpen ? 'h-full border-y-2' : 'h-0'} scrollbar-hide border-primary transition-[height]`}
       >
-        <div className="flex flex-col gap-10 p-10">
-          {DATA.map((item) => (
-            <div
-              className="bg-secondary h-100 w-full rounded-lg hover:cursor-pointer"
-              key={item.workspaceId}
-            ></div>
-          ))}
+        <div className="flex flex-col justify-between gap-10 p-10">
+          <div
+            className={`w-full rounded-lg p-10 hover:cursor-pointer ${currentWorkspaceId === null ? 'bg-accent' : 'bg-secondary'}`}
+            onClick={() => handleSelectWorkspace(null)}
+          >
+            빈 워크스페이스
+          </div>
+          {data &&
+            data.map((item: WorkspaceListItem) => (
+              <div
+                className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === currentWorkspaceId ? 'bg-accent' : 'bg-secondary'}`}
+                key={item.workspaceId}
+                onClick={() => handleSelectWorkspace(item.workspaceId)}
+              >
+                <p>{item.title}</p>
+                <p className="text-12 text-end">
+                  {formatKoreaTime(item.updatedAt, 'date')}
+                </p>
+              </div>
+            ))}
         </div>
       </div>
     </div>

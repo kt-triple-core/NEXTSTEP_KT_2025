@@ -5,9 +5,16 @@ import { useWorkspaceStore } from '@/widgets/workspace/model'
 // 현재 접근하고 있는 워크스페이스를 게시하는 훅
 const usePostWorkspace = () => {
   const mutation = useMutation({
-    mutationFn: () => {
-      const { nodes, edges, workspaceId, workspaceTitle } =
-        useWorkspaceStore.getState()
+    mutationFn: ({
+      workspaceTitle,
+      content,
+      listId,
+    }: {
+      workspaceTitle: string
+      content: string | null
+      listId: string
+    }) => {
+      const { nodes, edges, workspaceId } = useWorkspaceStore.getState()
 
       if (!workspaceTitle?.trim()) {
         throw new Error('워크스페이스 제목을 입력해주세요')
@@ -16,9 +23,10 @@ const usePostWorkspace = () => {
       return postWorkspace({
         workspaceId: workspaceId || undefined,
         title: workspaceTitle,
-        content: '설명',
+        content: content,
         nodes,
         edges,
+        listId: listId,
       })
     },
 
