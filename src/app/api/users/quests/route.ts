@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/shared/libs/supabaseClient'
 import { requireUser } from '@/shared/libs/requireUser'
 import { getTodayDate } from '@/features/user/quest/api/getTodayDate'
+import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 /**
  * 퀘스트 번호
@@ -45,7 +45,7 @@ function getQuestColumn(questNo: QuestNo) {
  * - UNIQUE(user_id, quest_date) 제약이 있어야 정상 동작
  */
 async function ensureTodayRow(userId: string, questDate: string) {
-  const { error } = await supabase.from('quests').insert({
+  const { error } = await supabaseAdmin.from('quests').insert({
     user_id: userId,
     quest_date: questDate,
     quest1: 'locked',
@@ -70,7 +70,7 @@ async function loadTodayQuestRow(userId: string, questDate: string) {
   await ensureTodayRow(userId, questDate)
 
   // 생성(또는 기존 row) 조회
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('quests')
     .select('quest_id, quest_date, quest1, quest2, quest3, quest4')
     .eq('user_id', userId)
@@ -98,7 +98,7 @@ export async function GET() {
     const questRow = await loadTodayQuestRow(userId, questDate)
 
     // 사용자 포인트 조회
-    const { data: user, error: userErr } = await supabase
+    const { data: user, error: userErr } = await supabaseAdmin
       .from('users')
       .select('point')
       .eq('user_id', userId)
@@ -155,7 +155,7 @@ export async function PATCH(req: Request) {
      * 1. locked → ready
      */
     if (body.action === 'ready') {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('quests')
         .update({
           [questColumn]: 'ready',
@@ -188,7 +188,7 @@ export async function PATCH(req: Request) {
      */
     const rewardPoint = Number.isFinite(body.reward) ? Number(body.reward) : 200
 
-    const { data: updatedQuest, error: questError } = await supabase
+    const { data: updatedQuest, error: questError } = await supabaseAdmin
       .from('quests')
       .update({
         [questColumn]: 'completed',
@@ -208,7 +208,7 @@ export async function PATCH(req: Request) {
     }
 
     // 현재 포인트 조회
-    const { data: currentUser, error: userErr } = await supabase
+    const { data: currentUser, error: userErr } = await supabaseAdmin
       .from('users')
       .select('point')
       .eq('user_id', userId)
@@ -222,7 +222,7 @@ export async function PATCH(req: Request) {
     const nextPoint = (currentUser.point ?? 0) + rewardPoint
 
     // 포인트 업데이트
-    const { data: updatedUser, error: updateUserErr } = await supabase
+    const { data: updatedUser, error: updateUserErr } = await supabaseAdmin
       .from('users')
       .update({ point: nextPoint })
       .eq('user_id', userId)

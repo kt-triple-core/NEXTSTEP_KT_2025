@@ -23,6 +23,7 @@ const ProfileAvatar = ({
           alt={`${name} 프로필 이미지`}
           width={size}
           height={size}
+          unoptimized
           className="rounded-full border border-gray-300 object-cover"
           style={{ width: size, height: size }}
         />

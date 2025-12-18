@@ -1,8 +1,8 @@
 // [경로] api/users/me/route.ts
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { supabase } from '@/shared/libs/supabaseClient'
 import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     // 이메일로 user 찾기
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('email', session.user.email)

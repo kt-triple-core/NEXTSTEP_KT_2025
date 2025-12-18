@@ -1,6 +1,6 @@
-import { supabase } from '@/shared/libs/supabaseClient'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/shared/libs/requireUser'
+import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 const MAX_EXPERIENCES_PER_USER = 3
 
@@ -36,7 +36,7 @@ export async function GET() {
     const { userId } = await requireUser()
 
     // 사용자 정보 조회
-    const { data: user, error: userErr } = await supabase
+    const { data: user, error: userErr } = await supabaseAdmin
       .from('users')
       .select('user_id, email, name, avatar, point, status')
       .eq('user_id', userId)
@@ -50,7 +50,7 @@ export async function GET() {
     }
 
     // 커리어 리스트 조회
-    const { data: experiences, error: expErr } = await supabase
+    const { data: experiences, error: expErr } = await supabaseAdmin
       .from('experiences')
       .select('experience_id, field, year, created_at')
       .eq('user_id', userId)
@@ -82,7 +82,7 @@ export async function PATCH(req: Request) {
     const { userId } = await requireUser()
 
     //  비활성/없는 유저 방지 (PATCH는 특히 더 안전하게)
-    const { data: user, error: userErr } = await supabase
+    const { data: user, error: userErr } = await supabaseAdmin
       .from('users')
       .select('user_id, status')
       .eq('user_id', userId)
@@ -118,7 +118,7 @@ export async function PATCH(req: Request) {
       body = (await req.json()) as PatchBody
     }
 
-    // ✅ 0) avatar 업로드(옵션) — 파일이 있을 때만 처리
+    // 0) avatar 업로드(옵션) — 파일이 있을 때만 처리
     if (avatarFile) {
       if (!avatarFile.type.startsWith('image/')) {
         return NextResponse.json(
@@ -133,15 +133,15 @@ export async function PATCH(req: Request) {
         )
       }
 
-      // ✅ "덮어쓰기"를 위해 경로를 고정
+      // "덮어쓰기"를 위해 경로를 고정
       // 확장자 통일(예: png)해버리면 관리가 쉬움
       const filePath = `${userId}/avatar.png`
 
-      const { error: uploadErr } = await supabase.storage
+      const { error: uploadErr } = await supabaseAdmin.storage
         .from(AVATAR_BUCKET)
         .upload(filePath, avatarFile, {
           contentType: avatarFile.type,
-          upsert: true, // ✅ 같은 경로면 덮어쓰기
+          upsert: true, // 같은 경로면 덮어쓰기
         })
 
       if (uploadErr) {
@@ -152,17 +152,17 @@ export async function PATCH(req: Request) {
         )
       }
 
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = supabaseAdmin.storage
         .from(AVATAR_BUCKET)
         .getPublicUrl(filePath)
 
-      // ✅ 같은 URL이면 브라우저/CDN 캐시 때문에 안 바뀐 것처럼 보일 수 있음
+      // 같은 URL이면 브라우저/CDN 캐시 때문에 안 바뀐 것처럼 보일 수 있음
       // 그래서 쿼리로 버전 붙여서 DB에 저장
       const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`
 
-      const { error: avatarUpdateErr } = await supabase
+      const { error: avatarUpdateErr } = await supabaseAdmin
         .from('users')
-        .update({ avatar: avatarUrl }) // ✅ DB에 최신 URL 저장
+        .update({ avatar: avatarUrl }) // DB에 최신 URL 저장
         .eq('user_id', userId)
 
       if (avatarUpdateErr) {
@@ -181,7 +181,7 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ message: 'Invalid name' }, { status: 400 })
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('users')
         .update({ name })
         .eq('user_id', userId)
@@ -196,7 +196,7 @@ export async function PATCH(req: Request) {
       const deletes = body.experiences.delete ?? []
 
       // 현재 활성 experiences 개수 체크(최대 3 제한을 안전하게)
-      const { count, error: countError } = await supabase
+      const { count, error: countError } = await supabaseAdmin
         .from('experiences')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
@@ -223,7 +223,7 @@ export async function PATCH(req: Request) {
 
       // 2-1) delete (soft delete)
       if (deletes.length > 0) {
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('experiences')
           .update({ status: false })
           .in('experience_id', deletes)
@@ -240,7 +240,7 @@ export async function PATCH(req: Request) {
 
         if (Object.keys(patch).length === 0) continue
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('experiences')
           .update(patch)
           .eq('experience_id', u.experienceId)
@@ -259,13 +259,13 @@ export async function PATCH(req: Request) {
           status: true,
         }))
 
-        const { error } = await supabase.from('experiences').insert(rows)
+        const { error } = await supabaseAdmin.from('experiences').insert(rows)
         if (error) throw error
       }
     }
 
     //  변경 후 최신 데이터 다시 내려주기(프론트 react-query 갱신에 편함)
-    const { data: updatedUser, error: updatedErr } = await supabase
+    const { data: updatedUser, error: updatedErr } = await supabaseAdmin
       .from('users')
       .select('user_id, email, name, avatar, point, status')
       .eq('user_id', userId)
@@ -278,7 +278,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ message: 'User inactive' }, { status: 403 })
     }
 
-    const { data: experiences, error: expErr } = await supabase
+    const { data: experiences, error: expErr } = await supabaseAdmin
       .from('experiences')
       .select('experience_id, field, year, created_at')
       .eq('user_id', userId)

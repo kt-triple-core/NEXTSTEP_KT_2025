@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 import GoogleAuthProvider from 'next-auth/providers/google'
-import { supabase } from '@/shared/libs/supabaseClient'
+import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 export const authOptions: NextAuthOptions = {
   // JWT 기반 세션 사용
@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // 1) Supabase에 해당 이메일의 유저가 있는지 확인
-      const { data: existingUser, error: selectError } = await supabase
+      const { data: existingUser, error: selectError } = await supabaseAdmin
         .from('users')
         .select('*')
         .eq('email', user.email)
@@ -44,11 +44,13 @@ export const authOptions: NextAuthOptions = {
 
       //2) 없으면 첫 로그인 -> 회원가입 처리
       if (!existingUser) {
-        const { error: insertError } = await supabase.from('users').insert({
-          email: user.email,
-          name: user.name ?? '새 유저',
-          avatar: user.image ?? null,
-        })
+        const { error: insertError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            email: user.email,
+            name: user.name ?? '새 유저',
+            avatar: user.image ?? null,
+          })
 
         if (insertError) {
           console.error('Supabase 신규 유저 생성 실패:', insertError.message)
@@ -69,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (!token?.email) return token
 
       // Supabase에서 해당 이메일 유저가 아직 존재하는지 확인
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('users')
         .select('user_id, avatar')
         .eq('email', token.email)
