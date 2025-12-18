@@ -8,9 +8,8 @@ const useSaveWorkspace = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
   const mutation = useMutation({
-    mutationFn: () => {
-      const { nodes, edges, workspaceId, workspaceTitle } =
-        useWorkspaceStore.getState()
+    mutationFn: (workspaceTitle: string) => {
+      const { nodes, edges, workspaceId } = useWorkspaceStore.getState()
 
       if (!workspaceTitle?.trim()) {
         throw new Error('워크스페이스 제목을 입력해주세요')
