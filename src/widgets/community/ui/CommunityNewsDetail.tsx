@@ -28,11 +28,7 @@ interface Props {
   toggleOpen: () => void
 }
 
-export default function CommunityNewsDetail({
-  articleId,
-  isOpen,
-  toggleOpen,
-}: Props) {
+const CommunityNewsDetail = ({ articleId, isOpen, toggleOpen }: Props) => {
   const [article, setArticle] = useState<Article | null>(null)
   const [listArticles, setListArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
@@ -92,9 +88,10 @@ export default function CommunityNewsDetail({
       : null
 
   return (
-    <div className="flex">
-      <div className="flex w-full justify-center px-40 py-40">
-        <div className="bg-primary w-full max-w-1200 rounded-xl">
+    <div className="flex h-[calc(100vh-80px)] overflow-hidden">
+      {/* 메인 콘텐츠 영역 */}
+      <div className="flex-1 overflow-y-auto px-40 py-40">
+        <div className="bg-primary mx-auto w-full max-w-1200 rounded-xl">
           {/* 헤더 */}
           <div className="point-gradient flex items-center justify-between rounded-tl-xl rounded-tr-xl px-24 py-12">
             <div className="flex gap-8">
@@ -147,7 +144,7 @@ export default function CommunityNewsDetail({
           </div>
 
           {/* 본문 */}
-          <div className="p-24">
+          <div className="p-24 pb-60">
             <div className="rounded-x0 mb-20 flex items-center gap-10 px-20 py-10">
               <div className="flex w-full items-center justify-between">
                 <p className="text-lg font-semibold">{article.title}</p>
@@ -162,7 +159,7 @@ export default function CommunityNewsDetail({
             </div>
 
             <div className="relative mb-24">
-              <div className="bg-secondary min-h-420 w-full rounded-xl p-24 pb-60">
+              <div className="bg-secondary w-full rounded-xl p-24">
                 <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
                   {article.summary}
                 </p>
@@ -175,7 +172,10 @@ export default function CommunityNewsDetail({
         </div>
       </div>
 
+      {/* 사이드바 */}
       <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
     </div>
   )
 }
+
+export default CommunityNewsDetail

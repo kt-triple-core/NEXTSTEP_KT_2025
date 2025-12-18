@@ -9,7 +9,7 @@ interface Article {
   published_at: string
 }
 
-export default function CommunityNewsList() {
+const CommunityNewsList = () => {
   const searchParams = useSearchParams()
   const listId = searchParams.get('list')
   const router = useRouter()
@@ -40,25 +40,29 @@ export default function CommunityNewsList() {
   }
 
   return (
-    <div className="flex flex-col divide-y divide-gray-200">
-      {articles.map((article) => (
-        <button
-          key={article.article_id}
-          onClick={() => router.push(`/community/news/${article.article_id}`)}
-          className="flex w-full cursor-pointer items-center justify-between gap-20 py-14 text-left transition hover:bg-gray-50"
-        >
-          {/* 제목 */}
-          <p className="text-14 text-foreground flex-1 truncate font-medium">
-            {article.title}
-          </p>
+    <div className="scrollbar-hide flex h-full flex-col overflow-y-auto">
+      <div className="flex flex-col divide-y divide-gray-200">
+        {articles.map((article) => (
+          <button
+            key={article.article_id}
+            onClick={() => router.push(`/community/news/${article.article_id}`)}
+            className="flex w-full cursor-pointer items-center justify-between gap-20 py-14 text-left transition hover:bg-gray-50"
+          >
+            {/* 제목 */}
+            <p className="text-14 text-foreground flex-1 truncate font-medium">
+              {article.title}
+            </p>
 
-          {/* 오른쪽 정보 */}
-          <div className="text-12 text-foreground-light flex shrink-0 items-center gap-16">
-            <span>{new Date(article.published_at).toLocaleDateString()}</span>
-            <span>💬 0</span>
-          </div>
-        </button>
-      ))}
+            {/* 오른쪽 정보 */}
+            <div className="text-12 text-foreground-light flex shrink-0 items-center gap-16">
+              <span>{new Date(article.published_at).toLocaleDateString()}</span>
+              {/* <span>💬 0</span> */}
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
+
+export default CommunityNewsList

@@ -7,7 +7,7 @@ import CommunityTabs from '@/features/community/ui/CommunityTabs'
 import CommunityNewsList from '@/widgets/community/ui/CommunityNewsList'
 import { useSearchParams } from 'next/navigation'
 
-export default function CommunityPage() {
+const CommunityPage = () => {
   const { isOpen, toggleOpen } = useOpen()
   const searchParams = useSearchParams()
 
@@ -15,11 +15,15 @@ export default function CommunityPage() {
   const listId = searchParams.get('list')
 
   return (
-    <div className="flex w-full overflow-x-hidden">
-      <div className="w-full">
-        <CommunityTabs />
-        {/* 커뮤니티 카드 영역 */}
-        <div className="flex flex-1 justify-center py-60">
+    <div className="flex h-[calc(100vh-80px)] w-full overflow-hidden">
+      <div className="flex w-full flex-col">
+        {/* 고정 탭 */}
+        <div className="shrink-0">
+          <CommunityTabs />
+        </div>
+
+        {/* 스크롤 영역 */}
+        <div className="flex flex-1 justify-center overflow-y-auto py-60">
           <div className="w-full max-w-[1200px] px-24">
             {tab === 'news' ? <CommunityNewsList /> : <CommunityCardGrid />}
           </div>
@@ -28,7 +32,8 @@ export default function CommunityPage() {
 
       {/* 커뮤니티 전용 사이드바 */}
       <CommunitySidebar isOpen={isOpen} toggleOpen={toggleOpen} />
-      {/* <div className="flex"></div> */}
     </div>
   )
 }
+
+export default CommunityPage
