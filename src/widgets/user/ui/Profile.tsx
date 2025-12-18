@@ -4,6 +4,9 @@ import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
 import { useSession } from 'next-auth/react'
 import MyInfo from '@/features/user/updateMyInfo/ui/MyInfo'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 const PROFILETAB_LIST = [
   { key: 'accessory', label: '악세사리' },
@@ -33,6 +36,13 @@ const Profile = () => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 1) 용량 사전 체크
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('이미지 용량은 최대 5MB까지 업로드할 수 있어요')
+      e.target.value = '' // 파일 선택 초기화
+      return
+    }
+
     const previewUrl = URL.createObjectURL(file)
     setPreviewImage(previewUrl)
 
@@ -41,10 +51,16 @@ const Profile = () => {
 
     const res = await fetch('/api/users', { method: 'PATCH', body: fd })
     const text = await res.text()
-    console.log('PATCH /api/users status:', res.status)
-    console.log('PATCH /api/users body:', text)
 
-    if (!res.ok) return
+    if (!res.ok) {
+      if (res.status === 413) {
+        toast.error('이미지 용량은 최대 5MB까지 업로드할 수 있어요.')
+      } else {
+        toast.error('프로필 이미지 업로드에 실패했어요.')
+      }
+      e.target.value = ''
+      return
+    }
 
     const data = JSON.parse(text)
     if (data?.avatar) setPreviewImage(data.avatar)

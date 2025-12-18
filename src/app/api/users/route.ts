@@ -5,7 +5,6 @@ import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 const MAX_EXPERIENCES_PER_USER = 3
 
 const AVATAR_BUCKET = 'avatars'
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 type PatchBody = {
   name?: string
@@ -124,12 +123,6 @@ export async function PATCH(req: Request) {
         return NextResponse.json(
           { message: 'Only image files allowed' },
           { status: 400 }
-        )
-      }
-      if (avatarFile.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { message: 'File too large (max 5MB)' },
-          { status: 413 }
         )
       }
 
