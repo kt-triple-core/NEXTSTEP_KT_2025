@@ -75,7 +75,7 @@ const Profile = () => {
         </div>
       </div>
       <section className="flex-1 shadow-lg">
-        <div className="flex h-full flex-col rounded-md bg-white">
+        <div className="flex h-full flex-col rounded-md bg-white dark:bg-[#313b51]">
           <div className="h-30 rounded-t-md bg-gradient-to-r from-[#6e5aef] to-[#8840ec]" />
           {/* 안쪽 컨텐츠 */}
           <div className="p-60 px-80">

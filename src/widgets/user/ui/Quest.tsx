@@ -1,6 +1,7 @@
 'use client'
 
 import QuestCard, { QuestCardVariant } from '@/features/user/quest/ui/QuestCard'
+import { Button } from '@/shared/ui'
 import { Add, Comment, Like, Send } from '@/shared/ui/icon'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -155,7 +156,7 @@ const Quest = () => {
   return (
     <main className="flex gap-80 px-50 py-30">
       <section className="flex-1 shadow-lg">
-        <div className="flex h-full flex-col rounded-md bg-white">
+        <div className="flex h-full flex-col rounded-md bg-white dark:bg-[#313b51]">
           <div className="flex items-center justify-between rounded-t-md bg-gradient-to-r from-[#6e5aef] to-[#8840ec] px-50 py-40">
             <div className="flex flex-col gap-15 text-white">
               <h2 className="text-3xl font-bold">🔥 오늘의 퀘스트!</h2>
@@ -163,9 +164,13 @@ const Quest = () => {
                 데일리 퀘스트를 달성하고 포인트를 얻어봐요.
               </span>
             </div>
-
-            <div className="text-3xl font-bold text-white">
-              내 포인트 : {point === null ? '...' : point.toLocaleString()}P
+            <div className="flex flex-col items-end gap-12">
+              <div className="text-3xl font-bold text-white">
+                내 포인트 : {point === null ? '...' : point.toLocaleString()}P
+              </div>
+              <Button className="rounded-sm px-12 py-4 font-semibold hover:opacity-80 hover:transition">
+                포인트 지급 내역
+              </Button>
             </div>
           </div>
 
