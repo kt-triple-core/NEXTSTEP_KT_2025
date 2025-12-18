@@ -32,9 +32,13 @@ const QuestCard = ({
   isClaiming = false,
 }: QuestCardProps) => {
   const isCompleted = variant === 'completed'
-  const canClaim = variant === 'ready'
+  const isReady = variant === 'ready'
   return (
-    <div className="rounded-md border border-[#7751EE] bg-[#F9F8FD] px-30 py-20">
+    <div
+      className={`relative rounded-md border border-[#7751EE] bg-[#F9F8FD] p-30 ${
+        isReady ? '' : isCompleted ? 'opacity-40' : 'opacity-70'
+      } `}
+    >
       <div>
         <div className="flex items-center gap-10">
           {leftIcon && <div>{leftIcon}</div>}
@@ -65,17 +69,17 @@ const QuestCard = ({
           <Button
             variant="accent"
             disabled
-            className="rounded-8 text-16 w-full py-15 opacity-60"
+            className="rounded-8 text-16 w-full py-15"
           >
             {rewardPoint.toLocaleString()}P 획득
           </Button>
         ) : (
           <Button
             variant="accent"
-            disabled={!canClaim || isClaiming}
-            onClick={canClaim ? onClaim : undefined}
-            className={`rounded-8 text-16 w-full py-15 ${
-              canClaim ? '' : 'cursor-not-allowed opacity-40'
+            disabled={!isReady || isClaiming}
+            onClick={isReady ? onClaim : undefined}
+            className={`rounded-8 text-16 w-full py-15 hover:cursor-pointer ${
+              isReady ? '' : 'hover:cursor-not-allowed'
             }`}
           >
             {isClaiming ? '처리중...' : `${rewardPoint.toLocaleString()}P 획득`}

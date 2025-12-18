@@ -9,7 +9,7 @@ export function useCareerDraft() {
     setYear('')
   }
 
-  // ✅ useCreateExperience에서 바로 쓰기 좋게 { field, year }로 반환
+  // useCreateExperience에서 바로 쓰기 좋게 { field, year }로 반환
   const getPayload = () => {
     return {
       field: field.trim(),

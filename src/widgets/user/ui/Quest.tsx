@@ -1,27 +1,13 @@
 'use client'
+
 import QuestCard, { QuestCardVariant } from '@/features/user/quest/ui/QuestCard'
-import { Comment, Like, Send } from '@/shared/ui/icon'
+import { Add, Comment, Like, Send } from '@/shared/ui/icon'
 import { useEffect, useMemo, useState } from 'react'
+
 type QuestStatus = 'locked' | 'ready' | 'completed'
-type UserRes = {
-  point: number
-}
-type TodayQuestResponse = {
-  point: number
-  quests: Array<{ questNo: 1 | 2 | 3; status: QuestStatus }>
-}
-
-type ReadyResponse = {
-  quests: Array<{ questNo: 1 | 2 | 3; status: QuestStatus }>
-}
-
-type CompleteResponse = {
-  point: number
-  quests: Array<{ questNo: 1 | 2 | 3; status: QuestStatus }>
-}
 
 type QuestUI = {
-  id: 1 | 2 | 3
+  id: 1 | 2 | 3 | 4
   title: string
   description: string
   leftIcon: React.ReactNode
@@ -29,6 +15,20 @@ type QuestUI = {
   rewardPoint: number
   variant: QuestCardVariant
 }
+
+type TodayQuestResponse = {
+  questDate: string
+  point: number
+  quests: Array<{ questNo: 1 | 2 | 3 | 4; status: QuestStatus }>
+}
+
+type PatchQuestResponse = {
+  message: string
+  questDate?: string
+  point?: number
+  quests: Array<{ questNo: 1 | 2 | 3 | 4; status: QuestStatus }>
+}
+
 const initialQuests: QuestUI[] = [
   {
     id: 1,
@@ -57,38 +57,36 @@ const initialQuests: QuestUI[] = [
     variant: 'locked',
     leftIcon: <Comment />,
   },
+  {
+    id: 4,
+    title: '새로운 워크스페이스 만들기',
+    description: '새로운 워크스페이스를 생성해 작업 환경을 만들어보세요.',
+    targetCount: 1,
+    rewardPoint: 200,
+    variant: 'locked',
+    leftIcon: <Add />,
+  },
 ]
-// 서버 status -> QuestCardVariant 매핑
+
 function toVariant(status: QuestStatus): QuestCardVariant {
   if (status === 'completed') return 'completed'
-  if (status === 'ready') return 'ready' // ✅ QuestCard에서 "수령 가능" 상태로 쓰는 이름
+  if (status === 'ready') return 'ready'
   return 'locked'
 }
 
-// 서버 status -> progressCount 매핑 (0/1 or 1/1)
 function toCurrentCount(status: QuestStatus) {
   return status === 'locked' ? 0 : 1
 }
 
 const Quest = () => {
-  const [quests, setQuests] = useState(initialQuests)
+  const [quests, setQuests] = useState<QuestUI[]>(initialQuests)
   const [point, setPoint] = useState<number | null>(null)
-  const [claimingId, setClaimingId] = useState<1 | 2 | 3 | null>(null)
+  const [claimingId, setClaimingId] = useState<1 | 2 | 3 | 4 | null>(null)
 
-  useEffect(() => {
-    const run = async () => {
-      const res = await fetch('/api/user', { method: 'GET' })
-      if (!res.ok) return setPoint(0) // 또는 에러 처리
-      const data = (await res.json()) as UserRes
-      setPoint(data.point ?? 0)
-    }
-    run()
-  }, [])
-
-  // 1) 첫 진입: today API로 상태/포인트 로드
+  // 첫 진입: 오늘 상태/포인트 로드
   useEffect(() => {
     const loadToday = async () => {
-      const res = await fetch('/api/quests/today', { method: 'GET' })
+      const res = await fetch('/api/users/quests', { method: 'GET' })
       if (!res.ok) {
         setPoint(0)
         return
@@ -97,7 +95,6 @@ const Quest = () => {
       const data = (await res.json()) as TodayQuestResponse
       setPoint(data.point ?? 0)
 
-      // quests 상태 반영
       setQuests((prev) =>
         prev.map((q) => {
           const server = data.quests.find((x) => x.questNo === q.id)
@@ -110,10 +107,8 @@ const Quest = () => {
     loadToday()
   }, [])
 
-  // 2) QuestCard에서 쓰는 currentCount는 서버 상태로부터 파생
   const questsForRender = useMemo(() => {
     return quests.map((q) => {
-      // variant 기반으로 0/1 처리
       const status: QuestStatus =
         q.variant === 'completed'
           ? 'completed'
@@ -121,49 +116,30 @@ const Quest = () => {
             ? 'ready'
             : 'locked'
 
-      return {
-        ...q,
-        currentCount: toCurrentCount(status),
-      }
+      return { ...q, currentCount: toCurrentCount(status) }
     })
   }, [quests])
 
-  // 3) locked -> ready (달성 처리) : 실제로는 공유/좋아요/댓글 이벤트에서 호출하면 됨
-  const markQuestReady = async (questNo: 1 | 2 | 3) => {
-    const res = await fetch('/api/quests/ready', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questNo }),
-    })
-
-    if (!res.ok) return
-
-    const data = (await res.json()) as ReadyResponse
-
-    setQuests((prev) =>
-      prev.map((q) => {
-        const server = data.quests.find((x) => x.questNo === q.id)
-        if (!server) return q
-        return { ...q, variant: toVariant(server.status) }
-      })
-    )
-  }
-
-  // 4) ready -> completed + point 지급
-  const completeQuest = async (questNo: 1 | 2 | 3, rewardPoint: number) => {
+  //  ready -> completed + point 지급
+  const completeQuest = async (questNo: 1 | 2 | 3 | 4, rewardPoint: number) => {
     setClaimingId(questNo)
+
     try {
-      const res = await fetch('/api/quests/complete', {
-        method: 'POST',
+      const res = await fetch('/api/users/quests', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questNo, reward: rewardPoint }),
+        body: JSON.stringify({
+          questNo,
+          action: 'complete',
+          reward: rewardPoint,
+        }),
       })
 
       if (!res.ok) return
 
-      const data = (await res.json()) as CompleteResponse
+      const data = (await res.json()) as PatchQuestResponse
+      if (typeof data.point === 'number') setPoint(data.point)
 
-      setPoint(data.point ?? 0)
       setQuests((prev) =>
         prev.map((q) => {
           const server = data.quests.find((x) => x.questNo === q.id)
@@ -175,6 +151,7 @@ const Quest = () => {
       setClaimingId(null)
     }
   }
+
   return (
     <main className="flex gap-80 px-50 py-30">
       <section className="flex-1 shadow-lg">
@@ -186,11 +163,12 @@ const Quest = () => {
                 데일리 퀘스트를 달성하고 포인트를 얻어봐요.
               </span>
             </div>
+
             <div className="text-3xl font-bold text-white">
               내 포인트 : {point === null ? '...' : point.toLocaleString()}P
             </div>
           </div>
-          {/* 안쪽 컨텐츠  */}
+
           <div className="grid grid-cols-3 gap-30 p-40">
             {questsForRender.map((q) => (
               <div key={q.id} className="space-y-10">
@@ -213,5 +191,4 @@ const Quest = () => {
     </main>
   )
 }
-
 export default Quest

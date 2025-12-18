@@ -4,6 +4,15 @@ import { requireUser } from '@/shared/libs/requireUser'
 
 const MAX_EXPERIENCES_PER_USER = 3
 
+const AVATAR_BUCKET = 'avatars'
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+function extractStoragePathFromPublicUrl(url: string) {
+  // 예: .../storage/v1/object/public/avatars/<path...>
+  const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`
+  const idx = url.indexOf(marker)
+  if (idx === -1) return null
+  return url.slice(idx + marker.length) // bucket 뒤의 path만 추출
+}
 type PatchBody = {
   name?: string
 
@@ -92,7 +101,69 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ message: 'User inactive' }, { status: 403 })
     }
 
-    const body = (await req.json()) as PatchBody
+    const contentType = req.headers.get('content-type') || ''
+    let body: PatchBody = {}
+    let avatarFile: File | null = null
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+
+      // 폼데이터로 name/experiences를 같이 받을 경우 (선택)
+      const name = formData.get('name')
+      const experiences = formData.get('experiences') // JSON string
+
+      if (typeof name === 'string') body.name = name
+      if (typeof experiences === 'string') {
+        body.experiences = JSON.parse(experiences)
+      }
+
+      const file = formData.get('avatar')
+      if (file instanceof File) avatarFile = file
+    } else {
+      // 기존 방식 유지 (application/json)
+      body = (await req.json()) as PatchBody
+    }
+
+    // ✅ 0) avatar 업로드(옵션) — 파일이 있을 때만 처리
+    if (avatarFile) {
+      if (!avatarFile.type.startsWith('image/')) {
+        return NextResponse.json(
+          { message: 'Only image files allowed' },
+          { status: 400 }
+        )
+      }
+      if (avatarFile.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { message: 'File too large (max 5MB)' },
+          { status: 413 }
+        )
+      }
+
+      const ext = avatarFile.name.split('.').pop()?.toLowerCase() || 'png'
+      const filePath = `avatars/${userId}/${crypto.randomUUID()}.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .upload(filePath, avatarFile, {
+          contentType: avatarFile.type,
+          upsert: false,
+        })
+
+      if (uploadErr) throw uploadErr
+
+      const { data: urlData } = supabase.storage
+        .from(AVATAR_BUCKET)
+        .getPublicUrl(filePath)
+
+      const avatarUrl = urlData.publicUrl
+
+      const { error: avatarUpdateErr } = await supabase
+        .from('users')
+        .update({ avatar: avatarUrl })
+        .eq('user_id', userId)
+
+      if (avatarUpdateErr) throw avatarUpdateErr
+    }
 
     //  1) 이름 업데이트(옵션) — name만 보내도 동작
     if (body.name !== undefined) {

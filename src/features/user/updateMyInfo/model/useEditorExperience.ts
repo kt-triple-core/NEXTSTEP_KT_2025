@@ -15,7 +15,7 @@ export function useEditorExperience(exp: Experience) {
   const [draftField, setDraftField] = useState(exp.field)
   const [draftYear, setDraftYear] = useState(String(exp.year))
 
-  // exp가 바뀌면(캐시 갱신 등) draft도 동기화
+  // 원본 데이터가 변경될 때 useEffect를 사용해 DRAFT 상태를 동기화
   useEffect(() => {
     if (!isEditing) {
       setDraftField(exp.field)
@@ -24,6 +24,7 @@ export function useEditorExperience(exp: Experience) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exp.experienceId, exp.field, exp.year])
 
+  // 제출 가능 여부를 계산
   const canSubmit = useMemo(() => {
     const f = draftField.trim()
     const y = Number(draftYear)

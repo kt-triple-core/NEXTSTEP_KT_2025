@@ -3,6 +3,7 @@ import { useUpdateUserInfo } from './useUpdateUserInfo'
 import { useCareerDraft } from './useCareerDraft'
 
 export function useCreateExperience() {
+  // '경력 추가' 폼(분야, 연차)의 상태를 관리
   const draft = useCareerDraft()
   const { mutateAsync, isPending } = useUpdateUserInfo()
 

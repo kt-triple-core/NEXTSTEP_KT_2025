@@ -3,7 +3,7 @@
 import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
 import { useSession } from 'next-auth/react'
 import MyInfo from '@/features/user/updateMyInfo/ui/MyInfo'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 const PROFILETAB_LIST = [
   { key: 'accessory', label: '악세사리' },
@@ -16,25 +16,67 @@ type TabKey = (typeof PROFILETAB_LIST)[number]['key']
 
 const Profile = () => {
   const { data: session } = useSession()
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('accessory')
+
+  if (!session?.user) return null
 
   const handleTabClick = (key: TabKey) => {
     setActiveTab(key)
   }
+  const handleEditClick = () => {
+    fileInputRef.current?.click()
+  }
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  if (!session?.user) return null
+    // 1️⃣ 로컬 미리보기
+    const previewUrl = URL.createObjectURL(file)
+    setPreviewImage(previewUrl)
+
+    // 2️⃣ 서버 업로드 (예시는 API 호출)
+    const fd = new FormData()
+    fd.append('avatar', file)
+    const res = await fetch('/api/users', {
+      method: 'PATCH',
+      body: fd,
+    })
+    if (!res.ok) {
+      // 실패 시 미리보기 되돌리고 싶으면 여기서 처리
+      return
+    }
+    const data = await res.json()
+    // ✅ 서버가 내려준 avatar(=DB에 저장된 URL)로 교체
+    if (data?.avatar) setPreviewImage(data.avatar)
+
+    // 같은 파일 다시 선택해도 change 이벤트 뜨게
+    e.target.value = ''
+  }
   return (
     <main className="flex gap-80 px-50 py-30">
       <div>
         <div className="relative inline-block w-250">
           <ProfileAvatar
             name={session.user.name}
-            image={session.user.image}
+            image={previewImage ?? session.user.image}
             size={250}
           />
-          <button className="absolute right-20 bottom-5 flex items-center justify-center rounded-full bg-white p-12 shadow-md hover:cursor-pointer">
+          <button
+            onClick={handleEditClick}
+            className="absolute right-20 bottom-5 flex items-center justify-center rounded-full bg-white p-12 shadow-md hover:cursor-pointer"
+          >
             ✏️
           </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
         </div>
       </div>
       <section className="flex-1 shadow-lg">

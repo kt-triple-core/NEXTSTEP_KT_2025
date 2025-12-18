@@ -14,6 +14,7 @@ type Props = {
 }
 
 export default function ExperienceRow({ exp }: Props) {
+  // 기존 경력을 수정/삭제하는 로직
   const row = useEditorExperience(exp)
 
   return (
