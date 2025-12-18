@@ -9,6 +9,7 @@ import { ReactFlow, Background, BackgroundVariant } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useThemeStore } from '@/features/theme/model'
 import { Plus } from 'lucide-react'
+import CommunityCommentSection from '@/widgets/community/comments/CommunityCommentSection'
 
 type Post = {
   posts_id: string
@@ -226,10 +227,7 @@ const CommunityPage = () => {
 
             {/* 댓글 */}
             <div className="flex flex-col gap-12">
-              <p className="font-semibold">댓글 (0)</p>
-              <p className="text-foreground-light text-sm">
-                아직 댓글이 없습니다.
-              </p>
+              <CommunityCommentSection postId={post.posts_id} />
             </div>
           </div>
         </div>

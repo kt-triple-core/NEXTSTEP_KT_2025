@@ -184,18 +184,25 @@ export const useComments = (articleId: string) => {
         `/api/community/news/${articleId}/comments/${commentId}`,
         {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUserId }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: currentUserId,
+          }),
         }
       )
 
-      if (!res.ok) throw new Error('Failed to delete comment')
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || '삭제 실패')
+      }
 
+      // ✅ DB 삭제 성공 후 UI 동기화
       await fetchComments()
-      toast.success('댓글이 삭제되었습니다.')
     } catch (err) {
       console.error(err)
-      toast.error('댓글 삭제에 실패했습니다.')
+      alert('댓글 삭제에 실패했습니다.')
     }
   }
 

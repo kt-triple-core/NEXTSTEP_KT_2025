@@ -15,11 +15,13 @@ interface Community {
 }
 
 const CommunitySidebar = ({ isOpen, toggleOpen }: CommunitySidebarProps) => {
+  //커뮤니티 리스트 상태 관리
   const [communityList, setCommunityList] = useState<Community[]>([])
   const router = useRouter()
+  //어떤 커뮤니티 리스트가 선택되었는지 확인하기 위해 searchParams 사용
   const searchParams = useSearchParams()
   const currentList = searchParams.get('list')
-
+  //커뮤니티 리스트 API 호출
   useEffect(() => {
     const fetchCommunityList = async () => {
       const res = await fetch('/api/community/lists')
