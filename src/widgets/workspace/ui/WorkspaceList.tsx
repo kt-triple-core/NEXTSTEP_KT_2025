@@ -5,10 +5,14 @@ import { List } from '@/shared/ui/icon'
 import { WorkspaceListItem } from '../model/types'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 const WorkspaceList = () => {
   const { isOpen, toggleOpen } = useOpen()
-  const { data } = useGetWorkspaceList()
+  const { status } = useSession()
+  const { data } = useGetWorkspaceList({
+    enabled: status === 'authenticated',
+  })
 
   const searchParams = useSearchParams()
   const currentWorkspaceId = searchParams.get('workspace')
