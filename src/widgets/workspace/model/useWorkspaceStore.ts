@@ -7,7 +7,7 @@ import {
   NodeChange,
 } from '@xyflow/react'
 import { initialNodes } from './constants'
-import { CustomNode } from './types'
+import { CustomNode, WorkspaceData } from './types'
 
 type WorkspaceStore = {
   // ReactFlow의 노드와 엣지
@@ -31,6 +31,10 @@ type WorkspaceStore = {
   setWorkspaceTitle: (title: string | null) => void
   lastSaved: Date | null
   setLastSaved: (date: Date | null) => void
+
+  // store 초기화
+  initializeWithData: (data: WorkspaceData) => void
+  resetToEmpty: () => void
 }
 
 const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
@@ -74,6 +78,26 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   setWorkspaceTitle: (title) => set({ workspaceTitle: title }),
   lastSaved: null,
   setLastSaved: (date) => set({ lastSaved: date }),
+
+  initializeWithData: (data) =>
+    set({
+      workspaceId: data.workspaceId,
+      workspaceTitle: data.title,
+      nodes: data.nodes || initialNodes,
+      edges: data.edges || [],
+      lastSaved: new Date(data.updatedAt),
+    }),
+
+  // 빈 워크스페이스로 리셋
+  resetToEmpty: () =>
+    set({
+      nodes: initialNodes,
+      edges: [],
+      workspaceId: null,
+      workspaceTitle: '새 워크스페이스',
+      lastSaved: null,
+      selectedNode: null,
+    }),
 }))
 
 export default useWorkspaceStore

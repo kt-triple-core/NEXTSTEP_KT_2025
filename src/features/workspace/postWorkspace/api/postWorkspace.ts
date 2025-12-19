@@ -5,9 +5,10 @@ import { Edge } from '@xyflow/react'
 interface postWorkspaceParams {
   workspaceId?: string // 있으면 PUT, 없으면 POST
   title: string
-  content?: string
+  content: string | null
   nodes: CustomNode[]
   edges: Edge[]
+  listId: string
 }
 
 const postWorkspace = async (params: postWorkspaceParams) => {

@@ -1,1 +1,1 @@
-export { default as PostWorkspaceButton } from './PostWorkspaceButton'
+export { default as PostWorkspaceModal } from './PostWorkspaceModal'

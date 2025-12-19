@@ -5,7 +5,7 @@ const useOpen = () => {
   const open = () => setIsOpen(true)
   const close = () => setIsOpen(false)
   const toggleOpen = () => setIsOpen((prev) => !prev)
-  return { isOpen, open, close, toggleOpen }
+  return { isOpen, setIsOpen, open, close, toggleOpen }
 }
 
 export default useOpen

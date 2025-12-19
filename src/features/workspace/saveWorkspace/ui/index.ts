@@ -1,1 +1,1 @@
-export { default as SaveWorkspaceButton } from './SaveWorkspaceButton'
+export { default as SaveWorkspaceModal } from './SaveWorkspaceModal'
