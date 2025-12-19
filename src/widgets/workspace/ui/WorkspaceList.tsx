@@ -6,6 +6,7 @@ import { WorkspaceListItem } from '../model/types'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import ListDropdownMenu from './ListDropdownMenu'
 
 const WorkspaceList = () => {
   const { isOpen, toggleOpen } = useOpen()
@@ -31,7 +32,7 @@ const WorkspaceList = () => {
   }
 
   return (
-    <div className="absolute top-10 bottom-10 left-10 flex w-200 flex-col gap-10">
+    <div className="absolute top-10 bottom-10 left-10 flex w-250 flex-col gap-10">
       <Button
         variant="primary"
         className="h-50 w-50 shrink-0"
@@ -53,11 +54,17 @@ const WorkspaceList = () => {
             data.map((item: WorkspaceListItem) => (
               <div
                 className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === currentWorkspaceId ? 'bg-accent' : 'bg-secondary'}`}
-                key={item.workspaceId}
+                key={item.workspaceId + '-' + item.title}
                 onClick={() => handleSelectWorkspace(item.workspaceId)}
               >
-                <p>{item.title}</p>
-                <p className="text-12 text-end">
+                <div className="flex items-center justify-between">
+                  <p className="line-clamp-1">{item.title}</p>
+                  <ListDropdownMenu
+                    title={item.title}
+                    workspaceId={item.workspaceId}
+                  />
+                </div>
+                <p className="text-12 text-start">
                   {formatKoreaTime(item.updatedAt, 'date')}
                 </p>
               </div>
