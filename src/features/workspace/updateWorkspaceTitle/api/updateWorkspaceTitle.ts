@@ -5,11 +5,14 @@ interface updateWorkspaceTitleParams {
   title: string
 }
 
-const updateWorkspaceTitle = async (params: updateWorkspaceTitleParams) => {
-  const { workspaceId, ...body } = params
-
+const updateWorkspaceTitle = async ({
+  workspaceId,
+  title,
+}: updateWorkspaceTitleParams) => {
   // 워크스페이스 이름 업데이트
-  const { data } = await api.patch(`/workspaces/${workspaceId}/title`, body)
+  const { data } = await api.patch(`/workspaces/${workspaceId}/title`, {
+    title,
+  })
   return data.content
 }
 

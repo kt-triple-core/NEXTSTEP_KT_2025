@@ -9,8 +9,7 @@ export async function PATCH(
   try {
     const { userId } = await requireUser()
     const { workspaceId } = await params
-    const body = await req.json()
-    const { title } = body
+    const { title } = await req.json()
 
     // 입력 검증
     if (!workspaceId) {
@@ -66,8 +65,8 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       content: {
-        workspace_id: data.id,
-        title: data.title,
+        workspaceId: data.workspace_id,
+        workspaceTitle: data.title,
       },
     })
   } catch (error) {

@@ -1,7 +1,6 @@
 import { Button } from '@/shared/ui'
 import Modal from '@/shared/ui/Modal'
 import { DialogClose } from '@radix-ui/react-dialog'
-import { useSession } from 'next-auth/react'
 import { useState } from 'react'
 import { useUpdateWorkspaceTitle } from '../model'
 import { toast } from 'sonner'
@@ -20,19 +19,9 @@ const UpdateWorkspaceTitleModal = ({
   workspaceId,
 }: UpdateWorkspaceTitleModalProps) => {
   const [titleInput, setTitleInput] = useState<string>(title)
-  const { status } = useSession()
   const { updateWorkspaceTitle, isSaving } = useUpdateWorkspaceTitle()
-  const handleSaveTitle = () => {
-    // 로그인 여부 확인
-    if (status !== 'authenticated') {
-      toast.warning('로그인이 필요합니다.')
-      return
-    }
-    if (!titleInput.trim()) {
-      toast.warning('워크스페이스 이름을 입력해주세요.')
-      return
-    }
 
+  const handleUpdateTitle = () => {
     updateWorkspaceTitle(
       { workspaceTitle: titleInput, workspaceId },
       {
@@ -40,6 +29,9 @@ const UpdateWorkspaceTitleModal = ({
           setIsOpen(false)
           setTitleInput('')
           toast.success('워크스페이스 이름이 변경되었습니다.')
+        },
+        onError: (e) => {
+          toast.error(e.message)
         },
       }
     )
@@ -59,8 +51,9 @@ const UpdateWorkspaceTitleModal = ({
           </DialogClose>
           <Button
             variant="accent"
-            onClick={handleSaveTitle}
+            onClick={handleUpdateTitle}
             className="px-20 py-8"
+            disabled={isSaving}
           >
             {isSaving ? '저장 중...' : '저장'}
           </Button>
