@@ -183,7 +183,7 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
       content: {
-        workspace_id: data.id,
+        workspaceId: data.workspace_id,
       },
     })
   } catch (error) {

@@ -18,7 +18,7 @@ const useUpdateWorkspaceTitle = () => {
       workspaceTitle: string
       workspaceId: string
     }) => {
-      // 로그인 여부 확인
+      // 예외 처리
       if (status !== 'authenticated') {
         throw new Error('로그인이 필요합니다.')
       }

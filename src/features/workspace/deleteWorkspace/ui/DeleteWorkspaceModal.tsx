@@ -1,8 +1,9 @@
 import { Button } from '@/shared/ui'
-import { useSession } from 'next-auth/react'
 import { useDeleteWorkspace } from '../model'
 import { toast } from 'sonner'
 import AlertModal from '@/shared/ui/AlertModal'
+import { useWorkspaceStore } from '@/widgets/workspace/model'
+import { useRouter } from 'next/navigation'
 
 interface DeleteWorkspaceModalProps {
   isOpen: boolean
@@ -15,21 +16,28 @@ const DeleteWorkspaceModal = ({
   setIsOpen,
   workspaceId,
 }: DeleteWorkspaceModalProps) => {
-  const { status } = useSession()
+  const router = useRouter()
   const { deleteWorkspace, isSaving } = useDeleteWorkspace()
-  const handleDelete = () => {
-    // 로그인 여부 확인
-    if (status !== 'authenticated') {
-      toast.warning('로그인이 필요합니다.')
-      return
-    }
+  const { workspaceId: currentWorkspaceId, setWorkspaceId } =
+    useWorkspaceStore()
 
+  const handleDelete = () => {
     deleteWorkspace(workspaceId, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success('워크스페이스가 삭제되었습니다.')
+
+        // 현재 보고 있는 워크스페이스를 삭제했을 경우
+        if (currentWorkspaceId === data.workspaceId) {
+          setWorkspaceId(null)
+          router.push('/')
+        }
+      },
+      onError: (e) => {
+        toast.error(e.message)
       },
     })
 
+    // AlertModal 닫기
     setIsOpen(false)
   }
 
