@@ -32,46 +32,50 @@ const WorkspaceList = () => {
   }
 
   return (
-    <div className="absolute top-10 bottom-10 left-10 flex w-250 flex-col gap-10">
-      <Button
-        variant="primary"
-        className="h-50 w-50 shrink-0"
-        onClick={toggleOpen}
-      >
-        <List />
-      </Button>
-      <div
-        className={`bg-primary overflow-y-auto rounded-md ${isOpen ? 'h-full border-y-2' : 'h-0'} scrollbar-hide border-primary transition-[height]`}
-      >
-        <div className="flex flex-col justify-between gap-10 p-10">
-          <div
-            className={`w-full rounded-lg p-10 hover:cursor-pointer ${currentWorkspaceId === null ? 'bg-accent' : 'bg-secondary'}`}
-            onClick={() => handleSelectWorkspace(null)}
-          >
-            빈 워크스페이스
-          </div>
-          {data &&
-            data.map((item: WorkspaceListItem) => (
-              <div
-                className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === currentWorkspaceId ? 'bg-accent' : 'bg-secondary'}`}
-                key={item.workspaceId + '-' + item.title}
-                onClick={() => handleSelectWorkspace(item.workspaceId)}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="line-clamp-1">{item.title}</p>
-                  <ListDropdownMenu
-                    title={item.title}
-                    workspaceId={item.workspaceId}
-                  />
+    <>
+      <div className="absolute top-10 left-10">
+        <Button
+          variant="primary"
+          className="h-50 w-50 shrink-0"
+          onClick={toggleOpen}
+        >
+          <List />
+        </Button>
+      </div>
+      <div className={`absolute top-70 bottom-10 left-10 w-0`}>
+        <div
+          className={`bg-primary scrollbar-hide ${isOpen ? 'h-full' : 'h-0'} w-250 overflow-y-auto rounded-md transition-[height]`}
+        >
+          <div className="flex flex-col justify-between gap-10 p-10">
+            <div
+              className={`w-full rounded-lg p-10 hover:cursor-pointer ${currentWorkspaceId === null ? 'bg-accent text-white' : 'bg-secondary'}`}
+              onClick={() => handleSelectWorkspace(null)}
+            >
+              빈 워크스페이스
+            </div>
+            {data &&
+              data.map((item: WorkspaceListItem) => (
+                <div
+                  className={`flex h-80 w-full flex-col justify-between rounded-lg p-10 hover:cursor-pointer ${item.workspaceId === currentWorkspaceId ? 'bg-accent text-white' : 'bg-secondary'}`}
+                  key={item.workspaceId + '-' + item.title}
+                  onClick={() => handleSelectWorkspace(item.workspaceId)}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="line-clamp-1">{item.title}</p>
+                    <ListDropdownMenu
+                      title={item.title}
+                      workspaceId={item.workspaceId}
+                    />
+                  </div>
+                  <p className="text-12 text-start">
+                    {formatKoreaTime(item.updatedAt, 'date')}
+                  </p>
                 </div>
-                <p className="text-12 text-start">
-                  {formatKoreaTime(item.updatedAt, 'date')}
-                </p>
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
