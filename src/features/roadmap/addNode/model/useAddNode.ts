@@ -27,7 +27,7 @@ const useAddNode = () => {
           x: clientX,
           y: clientY,
         }),
-        data: { label: '새 노드' },
+        data: { label: null },
         style: { ...NODE_STYLE.default },
         type: 'custom',
       }
