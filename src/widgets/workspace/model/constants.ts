@@ -20,7 +20,7 @@ export const NODE_STYLE = {
     border: '1px solid var(--color-primary)',
     width: 'auto',
     minWidth: '80px',
-    height: '50px',
+    height: '40px',
     padding: '0px 10px',
   },
   selected: {
