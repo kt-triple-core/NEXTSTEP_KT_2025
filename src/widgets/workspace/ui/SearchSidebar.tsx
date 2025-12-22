@@ -121,6 +121,7 @@ const SearchSidebar = ({
             ...node,
             data: {
               ...node.data,
+              techId: techItem.tech_id,
               label: techItem.name,
               iconUrl: techItem.icon_url,
             },
@@ -131,7 +132,12 @@ const SearchSidebar = ({
     )
     setSelectedNode({
       ...selectedNode,
-      data: { label: techItem.name, iconUrl: techItem.icon_url },
+      data: {
+        ...selectedNode.data,
+        techId: techItem.tech_id,
+        label: techItem.name,
+        iconUrl: techItem.icon_url,
+      },
     })
   }
 

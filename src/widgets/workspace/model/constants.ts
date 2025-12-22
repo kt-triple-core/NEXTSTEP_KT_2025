@@ -31,7 +31,7 @@ export const NODE_STYLE = {
 export const initialNodes: CustomNodeType[] = [
   {
     id: '1',
-    data: { label: 'Start' },
+    data: { techId: 'start', label: 'Start' },
     position: { x: 0, y: 0 },
     style: { ...START_NODE_STYLE.default },
   },

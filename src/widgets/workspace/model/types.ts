@@ -1,6 +1,7 @@
 import { Edge, Node } from '@xyflow/react'
 
 export type CustomNodeDataType = {
+  techId: string | null
   label: string | null
   iconUrl?: string
 }

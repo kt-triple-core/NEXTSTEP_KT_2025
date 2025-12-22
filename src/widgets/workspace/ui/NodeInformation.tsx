@@ -3,6 +3,7 @@ import { CustomNodeType } from '../model/types'
 import { useState } from 'react'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
 import Trash from '@/shared/ui/icon/Trash'
+import { MemoForm } from '@/features/roadmap/memoNode/ui'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -43,10 +44,6 @@ const NodeInformation = ({
   handleTechEdit,
 }: NodeInformationProps) => {
   const [mode, setMode] = useState<string>(NodeInformationMenu[0].key)
-
-  const [memoInput, setMemoInput] = useState<string>(
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut cursus nibh eget lorem posuere finibus. Vestibulum sapien erat, cursus in rutrum a, varius non leo. Integer ac nibh ac tortor aliquam venenatis sed sit amet leo. In eu semper velit, at sagittis eros. Nulla facilisi. Maecenas id ullamcorper nunc. Integer id vulputate nunc, sed cursus libero. Vivamus ullamcorper condimentum ligula, sed viverra ipsum consequat non. Sed consectetur lectus nec mauris vulputate interdum in ut neque. Etiam ac molestie eros. Donec lacinia mi ac tortor congue semper.'
-  )
 
   const [isDataAddOpen, setIsDataAddOpen] = useState<boolean>(false)
   const [data, setData] = useState<any[]>([])
@@ -145,14 +142,7 @@ const NodeInformation = ({
       {/* 탭별 항목 */}
       <div className="h-full p-10">
         {/* 메모 탭 */}
-        {mode === 'memo' && (
-          <textarea
-            value={memoInput}
-            onChange={(e) => setMemoInput(e.target.value)}
-            placeholder="메모를 입력하세요."
-            className="bg-background-light focus:bg-background h-full w-full resize-none rounded-md p-10 outline-none"
-          />
-        )}
+        {mode === 'memo' && <MemoForm techId={selectedNode.data.techId} />}
 
         {/* 자료 탭 */}
         {mode === 'data' && (
