@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
 import Trash from '@/shared/ui/icon/Trash'
 import { MemoForm } from '@/features/roadmap/postNodeMemo/ui'
+import { LinkForm } from '@/features/roadmap/postNodeLink/ui'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -12,7 +13,7 @@ interface NodeInformationProps {
 
 const NodeInformationMenu = [
   { key: 'memo', label: '메모' },
-  { key: 'data', label: '자료' },
+  { key: 'link', label: '자료' },
   { key: 'troubleShooting', label: '트러블슈팅' },
 ]
 const TROUBLE_SHOOTING = [
@@ -45,10 +46,8 @@ const NodeInformation = ({
 }: NodeInformationProps) => {
   const [mode, setMode] = useState<string>(NodeInformationMenu[0].key)
 
-  const [isDataAddOpen, setIsDataAddOpen] = useState<boolean>(false)
-  const [data, setData] = useState<any[]>([])
-  const [dataTitle, setDataTitle] = useState<string>('')
-  const [dataLink, setDataLink] = useState<string>('')
+  const [isLinkFormOpen, setIsLinkFormOpen] = useState<boolean>(false)
+  const [links, setLinks] = useState<any[]>([])
 
   const [isTroubleShootingAddOpen, setIsTroubleShootingAddOpen] =
     useState<boolean>(false)
@@ -59,28 +58,14 @@ const NodeInformation = ({
   // 모드 변경
   const handleModeChange = (mode: string) => {
     // 모든 폼 초기화
-    initDataAdd()
+    // initDataAdd()
     initTroubleShootingAdd()
     setMode(mode)
   }
 
-  // 자료 추가 초기화
-  const initDataAdd = () => {
-    setDataTitle('')
-    setDataLink('')
-    setIsDataAddOpen(false)
-  }
-  // 자료 추가
-  const handleAddData = () => {
-    setData([
-      { dataId: data.length + 1, title: dataTitle, link: dataLink },
-      ...data,
-    ])
-    initDataAdd()
-  }
   // 자료 삭제
-  const handleDeleteData = (id: number) => {
-    setData(data.filter((item) => item.dataId !== id))
+  const handleDeleteLink = (id: number) => {
+    setLinks(links.filter((link) => link.linkId !== id))
   }
 
   // 트러블슈팅 추가 초기화
@@ -145,68 +130,48 @@ const NodeInformation = ({
         {mode === 'memo' && <MemoForm techId={selectedNode.data.techId} />}
 
         {/* 자료 탭 */}
-        {mode === 'data' && (
+        {mode === 'link' && (
           <>
-            {!isDataAddOpen ? (
+            {!isLinkFormOpen ? (
               <Button
                 variant="accent"
                 className="w-full py-10"
-                onClick={() => setIsDataAddOpen(true)}
+                onClick={() => setIsLinkFormOpen(true)}
               >
                 추가하기
               </Button>
             ) : (
-              <>
-                <input
-                  value={dataTitle}
-                  onChange={(e) => setDataTitle(e.target.value)}
-                  placeholder="자료 이름"
-                  className="bg-secondary w-full rounded-md px-10 py-8 outline-none"
-                />
-                <input
-                  value={dataLink}
-                  onChange={(e) => setDataLink(e.target.value)}
-                  placeholder="https://..."
-                  className="bg-secondary mt-5 w-full rounded-md px-10 py-8 outline-none"
-                />
-                <div className="mt-5 flex justify-end gap-5">
-                  <Button className="px-20 py-8" onClick={initDataAdd}>
-                    취소
-                  </Button>
-                  <Button
-                    variant="accent"
-                    className="px-20 py-8"
-                    onClick={handleAddData}
-                  >
-                    추가
-                  </Button>
-                </div>
-              </>
+              <LinkForm
+                techId={selectedNode.data.techId}
+                handleCloseForm={() => setIsLinkFormOpen(false)}
+                links={links}
+                setLinks={setLinks}
+              />
             )}
-            {data.length > 0 && (
+            {links.length > 0 && (
               <ul className="mt-10 flex flex-col gap-10">
-                {data.map((item) => (
+                {links.map((link) => (
                   <li
-                    key={item.dataId}
+                    key={link.linkId}
                     className="bg-secondary group flex justify-between gap-10 rounded-md p-10"
                   >
                     <div>
                       <a
-                        href={item.link}
+                        href={link.linkUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="text-accent break-all underline hover:cursor-pointer"
                       >
-                        {item.title}
+                        {link.linkTitle}
                       </a>
                       <p className="text-12 text-foreground-light">
-                        {item.link}
+                        {link.linkUrl}
                       </p>
                     </div>
                     <Button
                       variant="secondary"
                       className="opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => handleDeleteData(item.dataId)}
+                      onClick={() => handleDeleteLink(link.linkId)}
                     >
                       <Trash />
                     </Button>
