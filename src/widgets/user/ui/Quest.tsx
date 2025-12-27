@@ -1,5 +1,6 @@
 'use client'
 
+import { useMyPoint } from '@/features/user/pointHistory/model/useMyPoint'
 import QuestCard, { QuestCardVariant } from '@/features/user/quest/ui/QuestCard'
 import { Button } from '@/shared/ui'
 import { Add, Comment, Like, Send } from '@/shared/ui/icon'
@@ -70,6 +71,7 @@ const initialQuests: QuestUI[] = [
   },
 ]
 
+// 서버 상태 → 카드 variant
 function toVariant(status: QuestStatus): QuestCardVariant {
   if (status === 'completed') return 'completed'
   if (status === 'ready') return 'ready'
@@ -82,21 +84,18 @@ function toCurrentCount(status: QuestStatus) {
 
 const Quest = () => {
   const router = useRouter()
+
   const [quests, setQuests] = useState<QuestUI[]>(initialQuests)
-  const [point, setPoint] = useState<number | null>(null)
+  const { point, setPoint } = useMyPoint() // ✅ 포인트는 전용 훅에서 관리
   const [claimingId, setClaimingId] = useState<1 | 2 | 3 | 4 | null>(null)
 
-  // 첫 진입: 오늘 상태/포인트 로드
+  // ✅ 첫 진입: "퀘스트 상태만" 로드 (포인트 로드 X)
   useEffect(() => {
-    const loadToday = async () => {
+    const loadTodayQuestStatus = async () => {
       const res = await fetch('/api/users/quests', { method: 'GET' })
-      if (!res.ok) {
-        setPoint(0)
-        return
-      }
+      if (!res.ok) return
 
       const data = (await res.json()) as TodayQuestResponse
-      setPoint(data.point ?? 0)
 
       setQuests((prev) =>
         prev.map((q) => {
@@ -107,7 +106,7 @@ const Quest = () => {
       )
     }
 
-    loadToday()
+    loadTodayQuestStatus()
   }, [])
 
   const questsForRender = useMemo(() => {
@@ -123,7 +122,7 @@ const Quest = () => {
     })
   }, [quests])
 
-  //  ready -> completed + point 지급
+  // ready -> completed + point 지급
   const completeQuest = async (questNo: 1 | 2 | 3 | 4, rewardPoint: number) => {
     setClaimingId(questNo)
 
@@ -141,8 +140,11 @@ const Quest = () => {
       if (!res.ok) return
 
       const data = (await res.json()) as PatchQuestResponse
+
+      // ✅ 서버에서 최신 포인트 내려주면 훅의 point로 반영
       if (typeof data.point === 'number') setPoint(data.point)
 
+      // 퀘스트 상태 다시 반영
       setQuests((prev) =>
         prev.map((q) => {
           const server = data.quests.find((x) => x.questNo === q.id)
@@ -166,10 +168,12 @@ const Quest = () => {
                 데일리 퀘스트를 달성하고 포인트를 얻어봐요.
               </span>
             </div>
+
             <div className="flex flex-col items-end gap-12">
               <div className="text-3xl font-bold text-white">
                 내 포인트 : {point === null ? '...' : point.toLocaleString()}P
               </div>
+
               <Button
                 onClick={() => router.push('/users?tab=quest&sub=point')}
                 className="rounded-sm px-12 py-4 font-medium hover:opacity-80 hover:transition"
@@ -201,4 +205,5 @@ const Quest = () => {
     </main>
   )
 }
+
 export default Quest

@@ -164,6 +164,9 @@ export async function PATCH(req: Request) {
         })
         .eq('user_id', userId)
         .eq('quest_date', questDate)
+
+        // 혹시모를 다중호출에 대한 상태변경 방지하고,
+        // 퀘스트 완료 단계가 잠김,준비,완료 순서를 따라만 바뀌게
         .eq(questColumn, 'locked') // locked일 때만 변경
         .select('quest_date, quest1, quest2, quest3, quest4')
         .single()
