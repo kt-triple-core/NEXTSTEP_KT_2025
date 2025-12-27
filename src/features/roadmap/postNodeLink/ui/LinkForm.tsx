@@ -2,22 +2,18 @@ import { useState } from 'react'
 import { usePostNodeLink } from '../model'
 import { toast } from 'sonner'
 import { Button } from '@/shared/ui'
+import { useWorkspaceStore } from '@/widgets/workspace/model'
 
 interface LinkFormProps {
   techId: string | null
   handleCloseForm: () => void
   links: any[]
-  setLinks: React.Dispatch<React.SetStateAction<any[]>>
 }
 
-const LinkForm = ({
-  techId,
-  handleCloseForm,
-  links,
-  setLinks,
-}: LinkFormProps) => {
+const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
   const [linkTitle, setLinkTitle] = useState<string>('')
   const [linkUrl, setLinkUrl] = useState<string>('')
+  const setNodeLinks = useWorkspaceStore((s) => s.setNodeLinks)
 
   const initForm = () => {
     setLinkTitle('')
@@ -32,11 +28,11 @@ const LinkForm = ({
       { techId, linkTitle, linkUrl },
       {
         onSuccess: (data) => {
-          setLinks([
+          setNodeLinks(techId, [
             {
-              linkId: data.linkId,
-              linkTitle: data.linkTitle,
-              linkUrl: data.linkUrl,
+              nodeLinkId: data.linkId,
+              title: data.linkTitle,
+              url: data.linkUrl,
             },
             ...links,
           ])

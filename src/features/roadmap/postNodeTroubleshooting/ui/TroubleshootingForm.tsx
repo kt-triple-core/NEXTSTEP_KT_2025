@@ -2,21 +2,23 @@ import { useState } from 'react'
 import { usePostNodeTroubleshooting } from '../model'
 import { toast } from 'sonner'
 import { Button } from '@/shared/ui'
+import { useWorkspaceStore } from '@/widgets/workspace/model'
 
 interface TroubleshootingFormProps {
   techId: string | null
   handleCloseForm: () => void
   troubleshootings: any[]
-  setTroubleshootings: React.Dispatch<React.SetStateAction<any[]>>
 }
 
 const TroubleshootingForm = ({
   techId,
   handleCloseForm,
   troubleshootings,
-  setTroubleshootings,
 }: TroubleshootingFormProps) => {
   const [troubleshooting, setTroubleshooting] = useState<string>('')
+  const setNodeTroubleshootings = useWorkspaceStore(
+    (s) => s.setNodeTroubleshootings
+  )
 
   const initForm = () => {
     setTroubleshooting('')
@@ -30,9 +32,9 @@ const TroubleshootingForm = ({
       { techId, troubleshooting },
       {
         onSuccess: (data) => {
-          setTroubleshootings([
+          setNodeTroubleshootings(techId, [
             {
-              troubleshootingId: data.troubleshootingId,
+              nodeTroubleshootingId: data.troubleshootingId,
               troubleshooting: data.troubleshooting,
               createdAt: data.createdAt,
             },

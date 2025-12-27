@@ -88,8 +88,6 @@ export async function GET(
         {
           nodeMemoId: memo.node_memo_id,
           memo: memo.memo,
-          createdAt: memo.created_at,
-          updatedAt: memo.updated_at,
         },
       ])
     )

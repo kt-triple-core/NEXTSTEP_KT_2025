@@ -6,6 +6,7 @@ import Trash from '@/shared/ui/icon/Trash'
 import { MemoForm } from '@/features/roadmap/postNodeMemo/ui'
 import { LinkForm } from '@/features/roadmap/postNodeLink/ui'
 import { TroubleshootingForm } from '@/features/roadmap/postNodeTroubleshooting/ui'
+import { useWorkspaceStore } from '../model'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -23,25 +24,31 @@ const NodeInformation = ({
   handleEditTech,
 }: NodeInformationProps) => {
   const [mode, setMode] = useState<string>(NodeInformationMenu[0].key)
+  const getNodeLinks = useWorkspaceStore((state) => state.getNodeLinks)
+  const getNodeTroubleshootings = useWorkspaceStore(
+    (state) => state.getNodeTroubleshootings
+  )
 
   const [isLinkFormOpen, setIsLinkFormOpen] = useState<boolean>(false)
-  const [links, setLinks] = useState<any[]>([])
+  const links = getNodeLinks(selectedNode.data.techId)
 
   const [isTroubleshootingFormOpen, setIsTroubleshootingFormOpen] =
     useState<boolean>(false)
-  const [troubleshootings, setTroubleshootings] = useState<any[]>([])
+  const troubleshootings = getNodeTroubleshootings(selectedNode.data.techId)
 
-  // 자료 삭제
-  const handleDeleteLink = (id: number) => {
-    setLinks(links.filter((link) => link.linkId !== id))
-  }
+  // // 자료 삭제
+  // const handleDeleteLink = (id: string) => {
+  //   setLinks(links.filter((link) => link.nodeLinkId !== id))
+  //   // TODO delete 요청
+  // }
 
-  // 트러블슈팅 삭제
-  const handleDeleteTroubleshooting = (id: number) => {
-    setTroubleshootings(
-      troubleshootings.filter((item) => item.troubleshootingId !== id)
-    )
-  }
+  // // 트러블슈팅 삭제
+  // const handleDeleteTroubleshooting = (id: string) => {
+  //   setTroubleshootings(
+  //     troubleshootings.filter((item) => item.nodeTroubleshootingId !== id)
+  //   )
+  //   // TODO delete 요청
+  // }
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -96,33 +103,32 @@ const NodeInformation = ({
                 techId={selectedNode.data.techId}
                 handleCloseForm={() => setIsLinkFormOpen(false)}
                 links={links}
-                setLinks={setLinks}
               />
             )}
             {links.length > 0 && (
               <ul className="mt-10 flex flex-col gap-10">
                 {links.map((link) => (
                   <li
-                    key={link.linkId}
+                    key={link.nodeLinkId}
                     className="bg-secondary group flex justify-between gap-10 rounded-md p-10"
                   >
                     <div>
                       <a
-                        href={link.linkUrl}
+                        href={link.url}
                         target="_blank"
                         rel="noreferrer"
                         className="text-accent break-all underline hover:cursor-pointer"
                       >
-                        {link.linkTitle}
+                        {link.title}
                       </a>
                       <p className="text-12 text-foreground-light">
-                        {link.linkUrl}
+                        {link.url}
                       </p>
                     </div>
                     <Button
                       variant="secondary"
                       className="opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => handleDeleteLink(link.linkId)}
+                      // onClick={() => handleDeleteLink(link.nodeLinkId)}
                     >
                       <Trash />
                     </Button>
@@ -148,7 +154,7 @@ const NodeInformation = ({
                 <ul className="mt-10 flex flex-col gap-10">
                   {troubleshootings.map((item) => (
                     <li
-                      key={item.troubleshootingId}
+                      key={item.nodeTroubleshootingId}
                       className="bg-secondary group flex justify-between gap-10 rounded-md p-10"
                     >
                       <div>
@@ -160,9 +166,11 @@ const NodeInformation = ({
                       <Button
                         variant="secondary"
                         className="opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={() =>
-                          handleDeleteTroubleshooting(item.troubleshootingId)
-                        }
+                        // onClick={() =>
+                        //   handleDeleteTroubleshooting(
+                        //     item.nodeTroubleshootingId
+                        //   )
+                        // }
                       >
                         <Trash />
                       </Button>
@@ -175,7 +183,6 @@ const NodeInformation = ({
                 techId={selectedNode.data.techId}
                 handleCloseForm={() => setIsTroubleshootingFormOpen(false)}
                 troubleshootings={troubleshootings}
-                setTroubleshootings={setTroubleshootings}
               />
             )}
           </>

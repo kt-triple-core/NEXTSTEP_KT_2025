@@ -9,6 +9,7 @@ interface MemoFormProps {
 
 const MemoForm = ({ techId }: MemoFormProps) => {
   const getNodeMemo = useWorkspaceStore((state) => state.getNodeMemo)
+  const setNodeMemos = useWorkspaceStore((s) => s.setNodeMemos)
 
   // 초기값: store에서 가져온 메모 (없으면 빈 문자열)
   const initialMemo = getNodeMemo(techId)
@@ -20,7 +21,10 @@ const MemoForm = ({ techId }: MemoFormProps) => {
     postNodeMemo(
       { techId, memo: memoInput },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          setNodeMemos(techId, {
+            memo: data.memo,
+          })
           toast.success('메모가 저장되었습니다.')
         },
         onError: (err) => {
