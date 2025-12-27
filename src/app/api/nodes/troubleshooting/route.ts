@@ -42,8 +42,9 @@ export const POST = async (req: NextRequest) => {
       success: true,
       content: {
         techId: data.tech_id,
-        troubleshootingId: data.node_troubleshooting_id,
+        nodeTroubleshootingId: data.node_troubleshooting_id,
         troubleshooting: data.troubleshooting,
+        createdAt: data.created_at,
       },
     })
   } catch (error) {

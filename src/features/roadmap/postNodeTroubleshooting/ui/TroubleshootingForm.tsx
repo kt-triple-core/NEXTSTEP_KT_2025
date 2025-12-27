@@ -34,7 +34,7 @@ const TroubleshootingForm = ({
         onSuccess: (data) => {
           setNodeTroubleshootings(techId, [
             {
-              nodeTroubleshootingId: data.troubleshootingId,
+              nodeTroubleshootingId: data.nodeTroubleshootingId,
               troubleshooting: data.troubleshooting,
               createdAt: data.createdAt,
             },

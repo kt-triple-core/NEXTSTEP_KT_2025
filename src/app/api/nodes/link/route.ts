@@ -6,23 +6,23 @@ export const POST = async (req: NextRequest) => {
   try {
     const { userId } = await requireUser()
     const body = await req.json()
-    const { techId, linkTitle, linkUrl } = body
+    const { techId, title, url } = body
 
     // 링크가 있을 때 저장
-    if (!linkTitle || linkTitle.trim() === '') {
+    if (!title || title.trim() === '') {
       return NextResponse.json(
         { error: 'link title is required' },
         { status: 400 }
       )
     }
-    if (!linkUrl || linkUrl.trim() === '') {
+    if (!url || url.trim() === '') {
       return NextResponse.json(
         { error: 'link url is required' },
         { status: 400 }
       )
     }
     // https로 시작하지 않을 때
-    if (!linkUrl.startsWith('https://')) {
+    if (!url.startsWith('https://')) {
       return NextResponse.json(
         { error: 'link url must start with https://' },
         { status: 400 }
@@ -35,8 +35,8 @@ export const POST = async (req: NextRequest) => {
       .insert({
         user_id: userId,
         tech_id: techId,
-        title: linkTitle,
-        url: linkUrl,
+        title,
+        url,
       })
       .select()
       .single()
@@ -56,9 +56,9 @@ export const POST = async (req: NextRequest) => {
       success: true,
       content: {
         techId: data.tech_id,
-        linkId: data.node_link_id,
-        linkTitle: data.title,
-        linkUrl: data.url,
+        nodeLinkId: data.node_link_id,
+        title: data.title,
+        url: data.url,
       },
     })
   } catch (error) {

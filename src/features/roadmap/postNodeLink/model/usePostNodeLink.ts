@@ -5,27 +5,27 @@ const usePostNodeLink = () => {
   const mutation = useMutation({
     mutationFn: ({
       techId,
-      linkTitle,
-      linkUrl,
+      title,
+      url,
     }: {
       techId: string
-      linkTitle: string
-      linkUrl: string
+      title: string
+      url: string
     }) => {
-      if (!linkTitle?.trim()) {
+      if (!title?.trim()) {
         throw new Error('자료 이름을 입력해주세요.')
       }
-      if (!linkUrl?.trim()) {
+      if (!url?.trim()) {
         throw new Error('자료 링크를 입력해주세요.')
       }
-      if (!linkUrl.startsWith('https://')) {
+      if (!url.startsWith('https://')) {
         throw new Error('자료 링크는 https://로 시작해야 합니다.')
       }
 
       return postNodeLink({
         techId,
-        linkTitle,
-        linkUrl,
+        title,
+        url,
       })
     },
   })

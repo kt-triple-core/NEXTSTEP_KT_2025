@@ -11,13 +11,13 @@ interface LinkFormProps {
 }
 
 const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
-  const [linkTitle, setLinkTitle] = useState<string>('')
-  const [linkUrl, setLinkUrl] = useState<string>('')
+  const [title, setTitle] = useState<string>('')
+  const [url, setUrl] = useState<string>('')
   const setNodeLinks = useWorkspaceStore((s) => s.setNodeLinks)
 
   const initForm = () => {
-    setLinkTitle('')
-    setLinkUrl('')
+    setTitle('')
+    setUrl('')
     handleCloseForm()
   }
 
@@ -25,14 +25,14 @@ const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
   const handleAdd = () => {
     if (!techId) return
     postNodeLink(
-      { techId, linkTitle, linkUrl },
+      { techId, title, url },
       {
         onSuccess: (data) => {
           setNodeLinks(techId, [
             {
-              nodeLinkId: data.linkId,
-              title: data.linkTitle,
-              url: data.linkUrl,
+              nodeLinkId: data.nodeLinkId,
+              title: data.title,
+              url: data.url,
             },
             ...links,
           ])
@@ -54,14 +54,14 @@ const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
   return (
     <>
       <input
-        value={linkTitle}
-        onChange={(e) => setLinkTitle(e.target.value)}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         placeholder="자료 이름"
         className="bg-secondary w-full rounded-md px-10 py-8 outline-none"
       />
       <input
-        value={linkUrl}
-        onChange={(e) => setLinkUrl(e.target.value)}
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
         placeholder="https://..."
         className="bg-secondary mt-5 w-full rounded-md px-10 py-8 outline-none"
       />
