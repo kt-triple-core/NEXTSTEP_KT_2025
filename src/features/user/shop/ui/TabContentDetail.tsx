@@ -12,14 +12,20 @@ type DecorationItem = {
 
 interface Props {
   item: DecorationItem
+  onClickPreview: () => void
 }
 
-const TabContentDetail = ({ item }: Props) => {
+const TabContentDetail = ({ item, onClickPreview }: Props) => {
   const isNickname = item.category === 'nickname'
   const isTitle = item.category === 'title'
 
   return (
-    <div className="flex flex-col items-center rounded-sm border border-[#DBCFFF] bg-[#FAF9FD] p-20">
+    <div
+      tabIndex={0}
+      onClick={onClickPreview}
+      onKeyDown={(e) => e.key === 'Enter' && onClickPreview()}
+      className="flex flex-col items-center rounded-sm border border-[#DBCFFF] bg-[#FAF9FD] p-20 hover:cursor-pointer"
+    >
       {/* 미리보기 영역 */}
       {!isTitle && (
         <div
@@ -48,9 +54,7 @@ const TabContentDetail = ({ item }: Props) => {
           <div className="text-lg font-medium text-black">{item.name}</div>
         ) : (
           <>
-            <div
-              className={`mt-10 text-lg font-medium text-black ${item.source ?? ''}`}
-            >
+            <div className={`mt-10 text-lg font-medium ${item.source ?? ''}`}>
               {item.name}
             </div>
           </>

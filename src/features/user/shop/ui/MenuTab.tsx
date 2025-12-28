@@ -10,10 +10,16 @@ type DecorationItem = {
   id: string
   name: string
   price: number
-  previewUrl?: string
+  category: 'accessory' | 'border' | 'title' | 'nickname'
+  style: string | null
+  source: string | null
 }
 
-const MenuTab = () => {
+interface Props {
+  onSelectPreview: (item: DecorationItem) => void
+}
+
+const MenuTab = ({ onSelectPreview }: Props) => {
   const [tab, setTab] = useState<TabValue>('accessory')
   const [items, setItems] = useState<DecorationItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -42,11 +48,18 @@ const MenuTab = () => {
       </TabsList>
 
       <TabsContent value={tab}>
-        <div className="custom-scroll mt-30 grid max-h-400 grid-cols-4 gap-30 overflow-x-hidden overflow-y-auto">
+        <div className="custom-scroll mt-30 grid max-h-800 grid-cols-4 gap-30 overflow-x-hidden overflow-y-auto">
           {items.map((item) => (
-            <TabContentDetail key={item.id} item={item} />
+            <TabContentDetail
+              key={item.id}
+              item={item}
+              onClickPreview={() => onSelectPreview(item)}
+            />
           ))}
         </div>
+        {loading && (
+          <div className="mt-10 text-sm text-gray-500">불러오는 중...</div>
+        )}
       </TabsContent>
     </Tabs>
   )

@@ -15,6 +15,8 @@ const config: Config = {
     'bg-[#c4d3ff]',
     'bg-[#ffe6cf]',
     'bg-[#cffff2]',
+    'from-[#a250d3]',
+    'to-[#30cdb9]',
     'text-[#10B710]',
     'text-[#7158bd]',
     'text-[#bf782c]',
@@ -24,9 +26,7 @@ const config: Config = {
     'text-[#1b1fd5]',
     'text-[#bd8358]',
     'text-[#4d9ca5]',
-    'text-[#ffffff]',
-    'from-[#a250d3]',
-    'to-[#30cdb9]',
+    'text-[#fafbfc]',
   ],
 }
 

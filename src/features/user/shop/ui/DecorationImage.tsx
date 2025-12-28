@@ -9,6 +9,7 @@ interface DecorationImageProps {
   category?: Category
   style?: Position | null
   source?: string | null
+  scale?: number
 }
 
 /**
@@ -18,12 +19,13 @@ export function DecorationImage({
   category = 'accessory',
   style = 'top',
   source,
+  scale = 1,
 }: DecorationImageProps) {
   // 위치 계산
   const getPositionClass = () => {
     //  border는 항상 정중앙
     if (category === 'border') {
-      return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%]'
+      return 'inset-0'
     }
 
     switch (style) {
@@ -37,16 +39,23 @@ export function DecorationImage({
         return 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2'
     }
   }
-
+  const sizeClass =
+    category === 'border'
+      ? 'absolute inset-0 w-full h-full scale-[1.12]'
+      : 'absolute h-50 w-50'
   return (
     <div
-      className={`absolute h-50 w-50 transition-all duration-300 ${getPositionClass()}`}
+      className={`${sizeClass} ${getPositionClass()}`}
+      style={
+        category === 'border' ? { transform: `scale(${scale})` } : undefined
+      }
     >
       <Image
         src={source ?? ''}
         alt={`${category} decoration`}
-        width={200}
-        height={200}
+        fill={category === 'border'}
+        width={category === 'border' ? undefined : 200}
+        height={category === 'border' ? undefined : 200}
         className="object-contain"
         unoptimized
       />
