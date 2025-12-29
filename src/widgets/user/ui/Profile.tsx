@@ -112,7 +112,7 @@ const Profile = () => {
                   category="border"
                   style={appliedBorder.style as any}
                   source={appliedBorder.source}
-                  scale={appliedBorder.scale ?? 1.05}
+                  scale={appliedBorder.scale ?? 1.2}
                 />
               </div>
             )}
@@ -123,6 +123,7 @@ const Profile = () => {
                   category="accessory"
                   style={appliedTop.style as any}
                   source={appliedTop.source}
+                  baseSize={200}
                 />
               </div>
             )}
@@ -133,6 +134,7 @@ const Profile = () => {
                   category="accessory"
                   style={appliedBottomLeft.style as any}
                   source={appliedBottomLeft.source}
+                  baseSize={200}
                 />
               </div>
             )}
@@ -144,6 +146,7 @@ const Profile = () => {
                   category="accessory"
                   style={appliedBottomRight.style as any}
                   source={appliedBottomRight.source}
+                  baseSize={200}
                 />
               </div>
             )}

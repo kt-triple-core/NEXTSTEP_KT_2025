@@ -10,6 +10,7 @@ interface DecorationImageProps {
   style?: Position | null
   source?: string | null
   scale?: number
+  baseSize?: number
 }
 
 /**
@@ -20,6 +21,7 @@ export function DecorationImage({
   style = 'top',
   source,
   scale = 1,
+  baseSize = 100,
 }: DecorationImageProps) {
   // 위치 계산
   const getPositionClass = () => {
@@ -39,23 +41,30 @@ export function DecorationImage({
         return 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2'
     }
   }
-  const sizeClass =
-    category === 'border'
-      ? 'absolute inset-0 w-full h-full scale-[1.12]'
-      : 'absolute h-50 w-50'
+
+  const accessorySize = Math.round(baseSize * 0.28)
   return (
     <div
-      className={`${sizeClass} ${getPositionClass()}`}
+      className={`absolute ${getPositionClass()}`}
       style={
-        category === 'border' ? { transform: `scale(${scale})` } : undefined
+        category === 'border'
+          ? {
+              inset: 0,
+              transform: `scale(${scale})`,
+            }
+          : {
+              width: accessorySize,
+              height: accessorySize,
+              transform: `scale(${scale})`,
+            }
       }
     >
       <Image
         src={source ?? ''}
         alt={`${category} decoration`}
         fill={category === 'border'}
-        width={category === 'border' ? undefined : 200}
-        height={category === 'border' ? undefined : 200}
+        width={category === 'border' ? undefined : accessorySize}
+        height={category === 'border' ? undefined : accessorySize}
         className="object-contain"
         unoptimized
       />

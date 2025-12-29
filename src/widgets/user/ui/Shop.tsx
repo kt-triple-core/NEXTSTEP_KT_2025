@@ -123,7 +123,7 @@ const Shop = () => {
                 category="border"
                 style={preview.border.style as any}
                 source={preview.border.source}
-                scale={preview.border.scale ?? 1.05}
+                scale={preview.border.scale ?? 1.2}
               />
             </div>
           )}
@@ -134,6 +134,7 @@ const Shop = () => {
                 category="accessory"
                 style={acc.style as any}
                 source={acc.source}
+                baseSize={200}
               />
             </div>
           ))}

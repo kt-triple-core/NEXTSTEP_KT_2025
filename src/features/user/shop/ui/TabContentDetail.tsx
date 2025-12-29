@@ -80,6 +80,7 @@ const TabContentDetail = ({ item, onClickPreview, onPurchased }: Props) => {
               category={item.category}
               style={item.style as any}
               source={item.source}
+              baseSize={200}
             />
           )}
         </div>

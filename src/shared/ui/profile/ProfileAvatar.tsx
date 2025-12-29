@@ -76,7 +76,7 @@ const ProfileAvatar = ({
               category="border"
               style={border.style as any}
               source={border.source}
-              scale={border.scale ?? 1.05}
+              scale={border.scale ?? 0.5}
             />
           </div>
         )}
@@ -92,7 +92,8 @@ const ProfileAvatar = ({
                 category="accessory"
                 style={(acc.style ?? pos) as any} // style 없으면 pos 사용
                 source={acc.source}
-                scale={acc.scale ?? 1}
+                scale={acc.scale ?? 0.5}
+                baseSize={50}
               />
             </div>
           )

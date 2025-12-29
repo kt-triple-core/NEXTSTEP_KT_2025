@@ -28,7 +28,7 @@ function buildAvatarDecorations(args: {
       ? {
           source: args.border.source,
           style: args.border.style,
-          scale: args.border.scale ?? 1.05,
+          scale: args.border.scale ?? 1.2,
         }
       : null,
 
