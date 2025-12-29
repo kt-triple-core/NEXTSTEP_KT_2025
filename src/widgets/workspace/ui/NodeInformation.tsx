@@ -7,6 +7,7 @@ import { MemoForm } from '@/features/roadmap/postNodeMemo/ui'
 import { LinkForm } from '@/features/roadmap/postNodeLink/ui'
 import { TroubleshootingForm } from '@/features/roadmap/postNodeTroubleshooting/ui'
 import { useWorkspaceStore } from '../model'
+import { DeleteNodeLinkButton } from '@/features/roadmap/deleteNodeLink/ui'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -125,13 +126,11 @@ const NodeInformation = ({
                         {link.url}
                       </p>
                     </div>
-                    <Button
-                      variant="secondary"
-                      className="opacity-0 transition-opacity group-hover:opacity-100"
-                      // onClick={() => handleDeleteLink(link.nodeLinkId)}
-                    >
-                      <Trash />
-                    </Button>
+                    <DeleteNodeLinkButton
+                      techId={selectedNode.data.techId}
+                      nodeLinkId={link.nodeLinkId}
+                      links={links}
+                    />
                   </li>
                 ))}
               </ul>
