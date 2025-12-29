@@ -226,7 +226,7 @@ export async function PATCH(req: Request) {
         )
       }
 
-      // ✅ apply일 때만 구매 검증
+      // apply일 때만 구매 검증
       if (action === 'applyDecoration') {
         if (!decorationId) {
           return NextResponse.json(
@@ -252,7 +252,7 @@ export async function PATCH(req: Request) {
         }
       }
 
-      // ✅ users 테이블 업데이트 payload
+      // users 테이블 업데이트 payload
       const patch: Record<string, string | null> = {}
 
       switch (category) {

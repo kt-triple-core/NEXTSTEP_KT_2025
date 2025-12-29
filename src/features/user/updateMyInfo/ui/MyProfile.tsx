@@ -112,7 +112,7 @@ const MyProfile = ({ onApplied }: Props) => {
   const handleToggleApply = async (item: PurchasedItem) => {
     const appliedNow = isApplied(item, applied)
 
-    // ✅ 해제 시 accessory는 "어느 슬롯을 비울지"가 필요함
+    // 해제 시 accessory는 "어느 슬롯을 비울지"가 필요함
     // (decorationId를 보내도 되지만, 서버는 slot을 알아야 컬럼을 null로 만들 수 있음)
     const style =
       item.category === 'accessory' && isAccessoryPosition(item.style)
@@ -139,7 +139,7 @@ const MyProfile = ({ onApplied }: Props) => {
 
     toast.success(appliedNow ? '해제 완료!' : '적용 완료!')
 
-    // ✅ 내 페이지(리스트)도 갱신 + Profile(아바타)도 갱신
+    // 내 페이지(리스트)도 갱신 + Profile(아바타)도 갱신
     await fetchProfile()
     onApplied?.()
   }

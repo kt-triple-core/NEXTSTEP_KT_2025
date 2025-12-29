@@ -49,7 +49,7 @@ const Profile = () => {
   const [orders, setOrders] = useState<PurchasedItem[]>([])
   const [applied, setApplied] = useState<AppliedState>(EMPTY_APPLIED)
 
-  // ✅ useEffect 의존성/재생성 문제 방지
+  // useEffect 의존성/재생성 문제 방지
   const fetchUserProfile = useCallback(async () => {
     const res = await fetch('/api/users')
     const data = await res.json()
