@@ -1,105 +1,128 @@
-// [경로] features/comment/hooks/useComments.ts
-import { useState, useEffect } from 'react'
+// [경로] features/community/model/useComments.ts
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-
-interface User {
-  user_id: string
-  name: string
-  avatar?: string
-  experience?: {
-    field: string
-    year: number
-  }
-}
-
-interface Comment {
-  comment_id: string
-  post_id: string
-  user_id: string
-  content: string
-  parent_comment_id?: string
-  created_at: string
-  updated_at: string
-  status: boolean
-  user: User
-  replies?: Comment[]
-}
-
-type CommentType = 'news' | 'post'
+import {
+  fetchComments,
+  fetchCurrentUser,
+  createComment,
+  updateComment,
+  deleteComment,
+  CommentType,
+} from './../api/commentApi'
 
 export const useComments = (postId: string, type: CommentType = 'news') => {
-  const [comments, setComments] = useState<Comment[]>([])
-  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const queryClient = useQueryClient()
+
   const [newComment, setNewComment] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
   const [editingComment, setEditingComment] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
 
-  // API 경로 결정
-  const getApiPath = () => {
-    return type === 'news'
-      ? `/api/community/news/${postId}/comments`
-      : `/api/community/posts/${postId}/comments`
-  }
+  // 댓글 목록 조회
+  const {
+    data: comments = [],
+    isLoading: isLoadingComments,
+    error: commentsError,
+  } = useQuery({
+    queryKey: ['comments', postId, type],
+    queryFn: () => fetchComments(postId, type),
+    staleTime: 1000 * 60, // 1분
+  })
 
-  // 사용법 :: features/comment/ui/CommentSection.tsx 참고
+  // 현재 사용자 조회
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: fetchCurrentUser,
+    staleTime: 1000 * 60 * 5, // 5분
+  })
 
-  // // 뉴스 댓글
-  // const { ... } = useComments(articleId, 'news')
+  const currentUserId = currentUser?.user_id || ''
 
-  // // 일반 게시글 댓글
-  // const { ... } = useComments(postId, 'post')
+  // 댓글 작성 mutation
+  const createCommentMutation = useMutation({
+    mutationFn: (content: string) =>
+      createComment(postId, type, {
+        content,
+        post_id: postId,
+        user_id: currentUserId,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId, type] })
+      setNewComment('')
+      toast.success('댓글이 작성되었습니다.')
+    },
+    onError: () => {
+      toast.error('댓글 작성에 실패했습니다.')
+    },
+  })
 
-  // // 기본값이 'news'라서 생략 가능
-  // const { ... } = useComments(articleId)
+  // 답글 작성 mutation
+  const createReplyMutation = useMutation({
+    mutationFn: ({
+      parentId,
+      content,
+    }: {
+      parentId: string
+      content: string
+    }) =>
+      createComment(postId, type, {
+        content,
+        post_id: postId,
+        parent_comment_id: parentId,
+        user_id: currentUserId,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId, type] })
+      setReplyContent('')
+      setReplyingTo(null)
+      toast.success('답글이 작성되었습니다.')
+    },
+    onError: () => {
+      toast.error('답글 작성에 실패했습니다.')
+    },
+  })
 
-  useEffect(() => {
-    fetchComments()
-    fetchCurrentUser()
-  }, [postId])
+  // 댓글 수정 mutation
+  const updateCommentMutation = useMutation({
+    mutationFn: ({
+      commentId,
+      content,
+    }: {
+      commentId: string
+      content: string
+    }) =>
+      updateComment(postId, type, commentId, {
+        content,
+        user_id: currentUserId,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId, type] })
+      setEditContent('')
+      setEditingComment(null)
+      toast.success('댓글이 수정되었습니다.')
+    },
+    onError: () => {
+      toast.error('댓글 수정에 실패했습니다.')
+    },
+  })
 
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await fetch('/api/users/me')
-      if (res.ok) {
-        const userData = await res.json()
-        setCurrentUserId(userData.user_id)
-      }
-    } catch (err) {
-      console.error('Failed to fetch user:', err)
-    }
-  }
+  // 댓글 삭제 mutation
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) =>
+      deleteComment(postId, type, commentId, { user_id: currentUserId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', postId, type] })
+      toast.success('댓글이 삭제되었습니다.')
+    },
+    onError: () => {
+      toast.error('댓글 삭제에 실패했습니다.')
+    },
+  })
 
-  const fetchComments = async () => {
-    try {
-      const res = await fetch(getApiPath())
-      if (!res.ok) {
-        setComments([])
-        return
-      }
-
-      const data = await res.json()
-
-      // 댓글을 부모-자식 구조로 변환
-      const parentComments = data.filter((c: Comment) => !c.parent_comment_id)
-      const childComments = data.filter((c: Comment) => c.parent_comment_id)
-
-      const commentsWithReplies = parentComments.map((parent: Comment) => ({
-        ...parent,
-        replies: childComments.filter(
-          (child: Comment) => child.parent_comment_id === parent.comment_id
-        ),
-      }))
-
-      setComments(commentsWithReplies)
-    } catch (err) {
-      console.error('Failed to fetch comments:', err)
-      setComments([])
-    }
-  }
-
-  const handleAddComment = async () => {
+  // 핸들러 함수들
+  const handleAddComment = () => {
     if (!newComment.trim()) return
 
     if (!currentUserId) {
@@ -107,29 +130,10 @@ export const useComments = (postId: string, type: CommentType = 'news') => {
       return
     }
 
-    try {
-      const res = await fetch(getApiPath(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newComment,
-          post_id: postId,
-          user_id: currentUserId,
-        }),
-      })
-
-      if (!res.ok) throw new Error('Failed to add comment')
-
-      setNewComment('')
-      await fetchComments()
-      toast.success('댓글이 작성되었습니다.')
-    } catch (err) {
-      console.error(err)
-      toast.error('댓글 작성에 실패했습니다.')
-    }
+    createCommentMutation.mutate(newComment)
   }
 
-  const handleAddReply = async (parentId: string) => {
+  const handleAddReply = (parentId: string) => {
     if (!replyContent.trim()) return
 
     if (!currentUserId) {
@@ -137,78 +141,29 @@ export const useComments = (postId: string, type: CommentType = 'news') => {
       return
     }
 
-    try {
-      const res = await fetch(getApiPath(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: replyContent,
-          post_id: postId,
-          parent_comment_id: parentId,
-          user_id: currentUserId,
-        }),
-      })
-
-      if (!res.ok) throw new Error('Failed to add reply')
-
-      setReplyContent('')
-      setReplyingTo(null)
-      await fetchComments()
-      toast.success('답글이 작성되었습니다.')
-    } catch (err) {
-      console.error(err)
-      toast.error('답글 작성에 실패했습니다.')
-    }
+    createReplyMutation.mutate({ parentId, content: replyContent })
   }
 
-  const handleEditComment = async (commentId: string) => {
+  const handleEditComment = (commentId: string) => {
     if (!editContent.trim()) return
 
-    try {
-      const res = await fetch(`${getApiPath()}/${commentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: editContent,
-          user_id: currentUserId,
-        }),
-      })
-
-      if (!res.ok) throw new Error('Failed to edit comment')
-
-      setEditContent('')
-      setEditingComment(null)
-      await fetchComments()
-      toast.success('댓글이 수정되었습니다.')
-    } catch (err) {
-      console.error(err)
-      toast.error('댓글 수정에 실패했습니다.')
-    }
+    updateCommentMutation.mutate({ commentId, content: editContent })
   }
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = (commentId: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return
 
-    try {
-      const res = await fetch(`${getApiPath()}/${commentId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: currentUserId }),
-      })
-
-      if (!res.ok) throw new Error('Failed to delete comment')
-
-      await fetchComments()
-      toast.success('댓글이 삭제되었습니다.')
-    } catch (err) {
-      console.error(err)
-      toast.error('댓글 삭제에 실패했습니다.')
-    }
+    deleteCommentMutation.mutate(commentId)
   }
 
   return {
+    // 데이터
     comments,
     currentUserId,
+    isLoadingComments,
+    commentsError,
+
+    // 상태
     newComment,
     setNewComment,
     replyingTo,
@@ -219,9 +174,17 @@ export const useComments = (postId: string, type: CommentType = 'news') => {
     setEditingComment,
     editContent,
     setEditContent,
+
+    // 액션
     handleAddComment,
     handleAddReply,
     handleEditComment,
     handleDeleteComment,
+
+    // 로딩 상태
+    isCreatingComment: createCommentMutation.isPending,
+    isCreatingReply: createReplyMutation.isPending,
+    isUpdatingComment: updateCommentMutation.isPending,
+    isDeletingComment: deleteCommentMutation.isPending,
   }
 }
