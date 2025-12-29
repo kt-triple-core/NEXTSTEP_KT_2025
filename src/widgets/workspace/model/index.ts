@@ -1,2 +1,2 @@
 export { default as useWorkspaceStore } from './useWorkspaceStore'
-export { NODE_STYLE, EDGE_STYLE } from './constants'
+export { NODE_STYLE } from './constants'

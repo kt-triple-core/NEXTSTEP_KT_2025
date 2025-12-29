@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { postWorkspace } from '../api'
 import { useWorkspaceStore } from '@/widgets/workspace/model'
+import { deselectAllNodes } from '../../lib/utils'
 
 // 현재 접근하고 있는 워크스페이스를 게시하는 훅
 const usePostWorkspace = () => {
@@ -15,6 +16,7 @@ const usePostWorkspace = () => {
       listId: string
     }) => {
       const { nodes, edges, workspaceId } = useWorkspaceStore.getState()
+      const updatedNodes = deselectAllNodes(nodes)
 
       if (!workspaceTitle?.trim()) {
         throw new Error('워크스페이스 제목을 입력해주세요')
@@ -24,7 +26,7 @@ const usePostWorkspace = () => {
         workspaceId: workspaceId || undefined,
         title: workspaceTitle,
         content: content,
-        nodes,
+        nodes: updatedNodes,
         edges,
         listId: listId,
       })

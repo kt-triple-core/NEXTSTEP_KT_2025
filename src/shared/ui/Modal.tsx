@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 
 interface ModalProps {
-  trigger: ReactNode
+  trigger?: ReactNode
   title: string
   description?: string
   children: ReactNode
@@ -42,7 +42,7 @@ const Modal = ({
 }: ModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className={className}>
         <DialogHeader className={headerClassName}>
           <DialogTitle className={titleClassName}>{title}</DialogTitle>

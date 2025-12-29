@@ -7,22 +7,28 @@ import {
   NodeChange,
 } from '@xyflow/react'
 import { initialNodes } from './constants'
-import { CustomNode, WorkspaceData } from './types'
+import {
+  CustomNodeType,
+  NodeLink,
+  NodeMemo,
+  NodeTroubleshooting,
+  WorkspaceData,
+} from './types'
 
 type WorkspaceStore = {
   // ReactFlow의 노드와 엣지
-  nodes: CustomNode[]
+  nodes: CustomNodeType[]
   edges: Edge[]
   setNodes: (
-    nodes: CustomNode[] | ((nodes: CustomNode[]) => CustomNode[])
+    nodes: CustomNodeType[] | ((nodes: CustomNodeType[]) => CustomNodeType[])
   ) => void
   setEdges: (edges: Edge[] | ((edges: Edge[]) => Edge[])) => void
-  onNodesChange: (changes: NodeChange<CustomNode>[]) => void
+  onNodesChange: (changes: NodeChange<CustomNodeType>[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
 
   // 선택된 노드
-  selectedNode: CustomNode | null
-  setSelectedNode: (node: CustomNode | null) => void
+  selectedNode: CustomNodeType | null
+  setSelectedNode: (node: CustomNodeType | null) => void
 
   // 현재 워크스페이스 정보
   workspaceId: string | null
@@ -31,6 +37,22 @@ type WorkspaceStore = {
   setWorkspaceTitle: (title: string | null) => void
   lastSaved: Date | null
   setLastSaved: (date: Date | null) => void
+
+  // 노드별 데이터
+  nodeMemos: Record<string, NodeMemo>
+  nodeLinks: Record<string, NodeLink[]>
+  nodeTroubleshootings: Record<string, NodeTroubleshooting[]>
+  setNodeMemos: (techId: string, memo: NodeMemo) => void
+  setNodeLinks: (techId: string, links: NodeLink[]) => void
+  setNodeTroubleshootings: (
+    techId: string,
+    troubleshootings: NodeTroubleshooting[]
+  ) => void
+
+  // 특정 techId의 데이터 가져오기
+  getNodeMemo: (techId: string | null) => NodeMemo | null
+  getNodeLinks: (techId: string | null) => NodeLink[]
+  getNodeTroubleshootings: (techId: string | null) => NodeTroubleshooting[]
 
   // store 초기화
   initializeWithData: (data: WorkspaceData) => void
@@ -48,7 +70,7 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
 
   onNodesChange: (changes) =>
     set((state) => ({
-      nodes: applyNodeChanges<CustomNode>(changes, state.nodes),
+      nodes: applyNodeChanges<CustomNodeType>(changes, state.nodes),
     })),
   onEdgesChange: (changes) =>
     set((state) => ({
@@ -79,6 +101,50 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   lastSaved: null,
   setLastSaved: (date) => set({ lastSaved: date }),
 
+  nodeMemos: {},
+  nodeLinks: {},
+  nodeTroubleshootings: {},
+
+  setNodeMemos: (techId: string, memo: NodeMemo) =>
+    set((state) => ({
+      nodeMemos: {
+        ...state.nodeMemos,
+        [techId]: memo,
+      },
+    })),
+
+  setNodeLinks: (techId: string, links: NodeLink[]) =>
+    set((state) => ({
+      nodeLinks: {
+        ...state.nodeLinks,
+        [techId]: links,
+      },
+    })),
+
+  setNodeTroubleshootings: (
+    techId: string,
+    troubleshootings: NodeTroubleshooting[]
+  ) =>
+    set((state) => ({
+      nodeTroubleshootings: {
+        ...state.nodeTroubleshootings,
+        [techId]: troubleshootings,
+      },
+    })),
+
+  getNodeMemo: (techId) => {
+    if (!techId) return null
+    return get().nodeMemos[techId] || null
+  },
+  getNodeLinks: (techId) => {
+    if (!techId) return []
+    return get().nodeLinks[techId] || []
+  },
+  getNodeTroubleshootings: (techId) => {
+    if (!techId) return []
+    return get().nodeTroubleshootings[techId] || []
+  },
+
   initializeWithData: (data) =>
     set({
       workspaceId: data.workspaceId,
@@ -86,6 +152,9 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       nodes: data.nodes || initialNodes,
       edges: data.edges || [],
       lastSaved: new Date(data.updatedAt),
+      nodeMemos: data.memos || {},
+      nodeLinks: data.links || {},
+      nodeTroubleshootings: data.troubleshootings || {},
     }),
 
   // 빈 워크스페이스로 리셋
@@ -97,6 +166,9 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       workspaceTitle: '새 워크스페이스',
       lastSaved: null,
       selectedNode: null,
+      nodeMemos: {},
+      nodeLinks: {},
+      nodeTroubleshootings: {},
     }),
 }))
 
