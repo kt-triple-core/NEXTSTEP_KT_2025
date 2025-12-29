@@ -5,7 +5,6 @@ import mainLogo from '@/shared/assets/logo/MainLogo.png'
 import mainLogowhite from '@/shared/assets/logo/MainLogoWhite.png'
 import Nav from './Nav'
 import { ThemeToggleButton } from '@/features/theme/ui'
-import { ProfileButton } from '@/features/profile/ui'
 import LoginButton from '@/features/login/ui/LoginButton'
 import { useThemeStore } from '@/features/theme/model'
 

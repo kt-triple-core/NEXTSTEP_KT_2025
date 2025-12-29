@@ -3,9 +3,11 @@ import { DecorationImage } from '@/features/user/shop/ui/DecorationImage'
 import MenuTab from '@/features/user/shop/ui/MenuTab'
 import { Button } from '@/shared/ui'
 import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
+import { useQuery } from '@tanstack/react-query'
+import axios, { AxiosError } from 'axios'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 type Category = 'accessory' | 'border' | 'title' | 'nickname'
 type Position = 'top' | 'bottom-right' | 'bottom-left'
@@ -36,6 +38,15 @@ const EMPTY_PREVIEW: PreviewState = {
   accessories: {},
 }
 
+type UserRes = {
+  name: string | null
+}
+
+async function getMyName() {
+  const res = await axios.get<UserRes>('/api/users', { withCredentials: true })
+  return res.data
+}
+
 const Shop = () => {
   const router = useRouter()
   const { data: session } = useSession()
@@ -43,24 +54,25 @@ const Shop = () => {
   const { point } = useMyPoint()
   const [displayPoint, setDisplayPoint] = useState<number | null>(null)
   const shownPoint = displayPoint ?? point
-  const [profileName, setProfileName] = useState<string>('')
+
+  //  React Query로 유저 이름 조회
+  const { data: me } = useQuery({
+    queryKey: ['userProfileName'],
+    queryFn: getMyName,
+    enabled: !!session?.user,
+    staleTime: 1000 * 30,
+    retry: (failCount, err: AxiosError<any>) => {
+      const status = err?.response?.status
+      if (status && [401, 403, 404].includes(status)) return false
+      return failCount < 2
+    },
+  })
+  if (!session?.user) return null
+  const profileName = me?.name ?? session.user.name ?? ''
 
   const handlePurchased = (newPoint: number) => {
     setDisplayPoint(newPoint)
   }
-
-  if (!session?.user) return null
-
-  useEffect(() => {
-    if (!session?.user) return
-    ;(async () => {
-      const res = await fetch('/api/users')
-      const data = await res.json()
-
-      if (!res.ok) return
-      setProfileName(data.name ?? session.user.name ?? '')
-    })()
-  }, [session?.user])
 
   const handlePreviewSelect = (item: DecorationItem) => {
     setPreview((prev) => {
@@ -109,7 +121,7 @@ const Shop = () => {
 
   return (
     <main className="flex gap-80 px-50 pt-20">
-      <div className="sticky top-20 shrink-0 self-start">
+      <div className="sticky top-30 shrink-0 self-start">
         <div className="relative inline-block w-250">
           <ProfileAvatar
             name={profileName || session.user.name}
@@ -140,7 +152,7 @@ const Shop = () => {
           ))}
         </div>
         {/*  title / nickname 미리보기(아바타 아래에 텍스트로 보여주기 예시) */}
-        <div className="mt-20 flex flex-col items-center gap-6">
+        <div className="mt-30 flex flex-col items-center gap-6">
           <div className={`text-lg font-semibold ${titleClass}`}>
             {preview.title?.name ?? '칭호 미리보기'}
           </div>

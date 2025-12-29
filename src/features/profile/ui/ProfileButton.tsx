@@ -1,22 +1,29 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
 import {
-  type AppliedState,
   type PurchasedItem,
   EMPTY_APPLIED,
-  findPurchasedItem,
 } from '@/features/user/shop/model/decorations'
+import { useQuery } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
+import axios from 'axios'
+import { useAppliedPurchasedItems } from '@/features/user/shop/model/useAppliedPurchasedItems'
 
 type UserRes = {
   name: string | null
   avatar: string | null
   orders: PurchasedItem[]
-  applied: AppliedState
 }
+
+async function getUserProfileForButton() {
+  const res = await axios.get<UserRes>('/api/users', { withCredentials: true })
+  return res.data
+}
+
 function buildAvatarDecorations(args: {
   border: PurchasedItem | null
   top: PurchasedItem | null
@@ -59,47 +66,53 @@ function buildAvatarDecorations(args: {
     },
   }
 }
+
 const ProfileButton = () => {
   const router = useRouter()
   const { data: session } = useSession()
 
-  const [dbName, setDbName] = useState<string | null>(null)
-  const [dbAvatar, setDbAvatar] = useState<string | null>(null)
-  const [orders, setOrders] = useState<PurchasedItem[]>([])
-  const [applied, setApplied] = useState<AppliedState>(EMPTY_APPLIED)
-  const [loading, setLoading] = useState(true)
-
-  const fetchMe = useCallback(async () => {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/users', { cache: 'no-store' })
-      const data = (await res.json()) as UserRes
-
-      if (!res.ok) return
-
-      setDbName(data.name ?? null)
-      setDbAvatar(data.avatar ?? null)
-      setOrders(data.orders ?? [])
-      setApplied(data.applied ?? EMPTY_APPLIED)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!session?.user) return
-    fetchMe()
-  }, [session?.user, fetchMe])
+  // 세션 있을 때만 조회
+  const { data, isFetching } = useQuery({
+    queryKey: ['userProfile'], // Profile.tsx와 동일하게 맞추는 게 베스트
+    queryFn: getUserProfileForButton,
+    enabled: !!session?.user,
+    staleTime: 1000 * 30,
+    retry: (failCount, err: AxiosError<any>) => {
+      const status = err?.response?.status
+      if (status && [401, 403, 404].includes(status)) return false
+      return failCount < 2
+    },
+  })
 
   if (!session?.user) return null
-  // 로딩 중엔 세션값으로라도 보여주기
-  const shownName = dbName ?? session.user.name ?? null
-  const shownAvatar = dbAvatar ?? session.user.image ?? null
 
-  const appliedBorder = findPurchasedItem(orders, applied.borderId)
-  const appliedTop = findPurchasedItem(orders, applied.topId)
-  const appliedBottomLeft = findPurchasedItem(orders, applied.bottomLeftId)
-  const appliedBottomRight = findPurchasedItem(orders, applied.bottomRightId)
+  // 로딩 중(또는 아직 data 없음)에도 세션 값으로 최소한 보여주기
+  const shownName = data?.name ?? session.user.name ?? null
+  const shownAvatar = data?.avatar ?? session.user.image ?? null
+
+  const orders = data?.orders ?? []
+  const applied = data?.applied ?? EMPTY_APPLIED
+
+  const appliedItems = useAppliedPurchasedItems(orders, applied)
+
+  const decorations = useMemo(() => {
+    // 아직 불러오는 중이면 (깜빡임 방지) decorations는 안 넣음
+    if (isFetching || !data) return undefined
+
+    return buildAvatarDecorations({
+      border: appliedItems.border,
+      top: appliedItems.top,
+      bottomLeft: appliedItems.bottomLeft,
+      bottomRight: appliedItems.bottomRight,
+    })
+  }, [
+    isFetching,
+    data,
+    appliedItems.border,
+    appliedItems.top,
+    appliedItems.bottomLeft,
+    appliedItems.bottomRight,
+  ])
 
   return (
     <button
@@ -110,16 +123,7 @@ const ProfileButton = () => {
         name={shownName}
         image={shownAvatar}
         size={45}
-        decorations={
-          loading
-            ? undefined
-            : buildAvatarDecorations({
-                border: appliedBorder,
-                top: appliedTop,
-                bottomLeft: appliedBottomLeft,
-                bottomRight: appliedBottomRight,
-              })
-        }
+        decorations={decorations}
       />
     </button>
   )

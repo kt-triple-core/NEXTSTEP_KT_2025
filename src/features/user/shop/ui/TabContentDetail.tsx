@@ -5,6 +5,8 @@ import { Button } from '@/shared/ui'
 import { DecorationImage } from './DecorationImage'
 import { toast } from 'sonner'
 import Modal from '@/shared/ui/Modal'
+import axios, { AxiosError } from 'axios'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 type DecorationItem = {
   id: string
@@ -21,41 +23,59 @@ interface Props {
   onPurchased: (newPoint: number) => void
 }
 
+type PurchaseResponse = {
+  result: {
+    itemName: string
+    spent: number
+    newPoint: number
+  }
+  message?: string
+}
+
+async function purchaseDecoration(decorationId: string) {
+  const res = await axios.post<PurchaseResponse>(
+    '/api/users/shops/purchase',
+    { decorationId },
+    { withCredentials: true }
+  )
+  return res.data
+}
+
 const TabContentDetail = ({ item, onClickPreview, onPurchased }: Props) => {
   const [open, setOpen] = useState(false)
-  const [purchasing, setPurchasing] = useState(false)
+  const queryClient = useQueryClient()
+
   const isNickname = item.category === 'nickname'
   const isTitle = item.category === 'title'
 
-  // 모달 "확정 구매"용 (이벤트 없음)
-  const purchase = async () => {
-    try {
-      setPurchasing(true)
-
-      const res = await fetch('/api/users/shops/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decorationId: item.id }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        toast.error(data.message ?? '구매 실패')
-        return
-      }
-
+  const purchaseMutation = useMutation({
+    mutationFn: () => purchaseDecoration(item.id),
+    onSuccess: async (data) => {
       toast.success(
         `${data.result.itemName} 구매 완료! (-${data.result.spent}P)`
       )
       onPurchased(data.result.newPoint)
 
-      // 성공하면 모달 닫기
+      // 필요하면 캐시 갱신(프로필/포인트/구매목록 등)
+      // 이미 화면에서 point만 즉시 갱신하려고 onPurchased를 쓰고 있으니 선택사항이지만,
+      // 다른 화면(프로필 버튼/프로필 페이지)에서도 구매내역이 바로 반영되게 하려면 invalidate 추천
+      await queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+      await queryClient
+        .invalidateQueries({ queryKey: ['myPoint'] })
+        .catch(() => {})
+
       setOpen(false)
-    } finally {
-      setPurchasing(false)
-    }
-  }
+    },
+    onError: (err: AxiosError<any>) => {
+      const msg =
+        err.response?.data?.message ??
+        (err.response?.status === 401 ? '로그인이 필요해요.' : null) ??
+        '구매 실패'
+      toast.error(msg)
+    },
+  })
+
+  const purchasing = purchaseMutation.isPending
 
   return (
     <div
@@ -108,7 +128,8 @@ const TabContentDetail = ({ item, onClickPreview, onPurchased }: Props) => {
             variant="accent"
             className="mt-15 w-full rounded-sm py-10"
             onClick={(e: any) => {
-              e.stopPropagation() // 카드 클릭(미리보기) 막기
+              e.stopPropagation()
+              setOpen(true) // trigger 클릭 시 모달 열기
             }}
           >
             구매하기
@@ -131,7 +152,8 @@ const TabContentDetail = ({ item, onClickPreview, onPurchased }: Props) => {
               className="flex-1 rounded-sm"
               onClick={(e: any) => {
                 e.stopPropagation()
-                purchase()
+                purchaseMutation.mutate()
+                setOpen(false)
               }}
               disabled={purchasing}
             >
