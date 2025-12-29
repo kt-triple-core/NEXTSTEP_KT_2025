@@ -20,6 +20,7 @@ interface Article {
   published_at: string
   link: string
   list: string
+  keywords: string[]
 }
 
 interface Props {
@@ -44,6 +45,8 @@ const CommunityNewsDetail = ({ articleId, isOpen, toggleOpen }: Props) => {
         if (!res.ok) throw new Error('Failed to fetch article')
         const data: Article = await res.json()
         setArticle(data)
+
+        // console.log(data, '데이터')
 
         // 같은 리스트 내 글 가져오기
         const listRes = await fetch(`/api/community/news?list=${data.list}`)
@@ -158,12 +161,24 @@ const CommunityNewsDetail = ({ articleId, isOpen, toggleOpen }: Props) => {
               </div>
             </div>
 
-            <div className="relative mb-24">
+            <div className="relative">
               <div className="bg-secondary w-full rounded-xl p-24">
                 <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
                   {article.summary}
                 </p>
               </div>
+            </div>
+
+            <div className="mt-10 mb-20 flex flex-wrap gap-8">
+              {Array.isArray(article.keywords) &&
+                article.keywords.map((keyword, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-secondary text-foreground-light rounded-md px-10 py-4 text-xs"
+                  >
+                    # {keyword}
+                  </span>
+                ))}
             </div>
 
             {/* 댓글 */}

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 interface Article {
   article_id: string
+  source: string
   title: string
   published_at: string
 }
@@ -48,6 +49,11 @@ const CommunityNewsList = () => {
             onClick={() => router.push(`/community/news/${article.article_id}`)}
             className="flex w-full cursor-pointer items-center justify-between gap-20 py-14 text-left transition hover:bg-gray-50"
           >
+            <div className="text-12 w-80">
+              <p className="bg-primary rounded-md py-5 text-center">
+                {article.source}
+              </p>
+            </div>
             {/* 제목 */}
             <p className="text-14 text-foreground flex-1 truncate font-medium">
               {article.title}
