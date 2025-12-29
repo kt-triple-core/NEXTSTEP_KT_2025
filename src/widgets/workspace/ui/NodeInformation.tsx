@@ -2,7 +2,6 @@ import { Button } from '@/shared/ui'
 import { CustomNodeType } from '../model/types'
 import { useState } from 'react'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
-import Trash from '@/shared/ui/icon/Trash'
 import { MemoForm } from '@/features/roadmap/postNodeMemo/ui'
 import { LinkForm } from '@/features/roadmap/postNodeLink/ui'
 import { TroubleshootingForm } from '@/features/roadmap/postNodeTroubleshooting/ui'
@@ -26,9 +25,9 @@ const NodeInformation = ({
   handleEditTech,
 }: NodeInformationProps) => {
   const [mode, setMode] = useState<string>(NodeInformationMenu[0].key)
-  const getNodeLinks = useWorkspaceStore((state) => state.getNodeLinks)
+  const getNodeLinks = useWorkspaceStore((s) => s.getNodeLinks)
   const getNodeTroubleshootings = useWorkspaceStore(
-    (state) => state.getNodeTroubleshootings
+    (s) => s.getNodeTroubleshootings
   )
 
   const [isLinkFormOpen, setIsLinkFormOpen] = useState<boolean>(false)
@@ -37,20 +36,6 @@ const NodeInformation = ({
   const [isTroubleshootingFormOpen, setIsTroubleshootingFormOpen] =
     useState<boolean>(false)
   const troubleshootings = getNodeTroubleshootings(selectedNode.data.techId)
-
-  // // 자료 삭제
-  // const handleDeleteLink = (id: string) => {
-  //   setLinks(links.filter((link) => link.nodeLinkId !== id))
-  //   // TODO delete 요청
-  // }
-
-  // // 트러블슈팅 삭제
-  // const handleDeleteTroubleshooting = (id: string) => {
-  //   setTroubleshootings(
-  //     troubleshootings.filter((item) => item.nodeTroubleshootingId !== id)
-  //   )
-  //   // TODO delete 요청
-  // }
 
   return (
     <div className="flex h-full w-full flex-col">

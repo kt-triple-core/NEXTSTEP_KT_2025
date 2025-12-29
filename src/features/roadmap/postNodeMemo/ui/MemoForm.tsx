@@ -8,7 +8,7 @@ interface MemoFormProps {
 }
 
 const MemoForm = ({ techId }: MemoFormProps) => {
-  const getNodeMemo = useWorkspaceStore((state) => state.getNodeMemo)
+  const getNodeMemo = useWorkspaceStore((s) => s.getNodeMemo)
   const setNodeMemos = useWorkspaceStore((s) => s.setNodeMemos)
 
   // 초기값: store에서 가져온 메모 (없으면 빈 문자열)
