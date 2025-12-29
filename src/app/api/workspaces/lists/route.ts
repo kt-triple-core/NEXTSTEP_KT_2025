@@ -10,6 +10,7 @@ export const GET = async () => {
       .from('workspaces')
       .select('*')
       .eq('user_id', userId)
+      .eq('status', true)
       .order('updated_at', { ascending: false })
 
     if (error) {

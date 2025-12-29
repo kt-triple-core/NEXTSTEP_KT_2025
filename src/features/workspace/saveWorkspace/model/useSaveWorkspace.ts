@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { saveWorkspace } from '../api'
 import { useWorkspaceStore } from '@/widgets/workspace/model'
 import { useRouter } from 'next/navigation'
+import { deselectAllNodes } from '../../lib/utils'
 
 // 현재 접근하고 있는 워크스페이스를 저장하는 훅
 const useSaveWorkspace = () => {
@@ -10,6 +11,7 @@ const useSaveWorkspace = () => {
   const mutation = useMutation({
     mutationFn: (workspaceTitle: string) => {
       const { nodes, edges, workspaceId } = useWorkspaceStore.getState()
+      const updatedNodes = deselectAllNodes(nodes)
 
       if (!workspaceTitle?.trim()) {
         throw new Error('워크스페이스 제목을 입력해주세요')
@@ -18,7 +20,7 @@ const useSaveWorkspace = () => {
       return saveWorkspace({
         workspaceId: workspaceId || undefined,
         title: workspaceTitle,
-        nodes,
+        nodes: updatedNodes,
         edges,
       })
     },

@@ -1,4 +1,15 @@
-import { CustomNode } from './types'
+import { CustomNodeType } from './types'
+
+export const START_NODE_STYLE = {
+  default: {
+    background: 'var(--color-primary)',
+    borderRadius: '8px',
+    fontSize: '12px',
+    border: '1px solid var(--color-primary)',
+    width: '80px',
+    height: '30px',
+  },
+}
 
 export const NODE_STYLE = {
   default: {
@@ -7,17 +18,21 @@ export const NODE_STYLE = {
     borderRadius: '8px',
     fontSize: '12px',
     border: '1px solid var(--color-primary)',
+    width: 'auto',
+    minWidth: '80px',
+    height: '40px',
+    padding: '0px 10px',
   },
   selected: {
     border: '1px solid var(--color-accent)',
   },
 }
 
-export const initialNodes: CustomNode[] = [
+export const initialNodes: CustomNodeType[] = [
   {
     id: '1',
-    data: { label: 'Start' },
+    data: { techId: 'start', label: 'Start' },
     position: { x: 0, y: 0 },
-    style: { ...NODE_STYLE.default },
+    style: { ...START_NODE_STYLE.default },
   },
 ]

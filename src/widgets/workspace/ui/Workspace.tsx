@@ -12,6 +12,7 @@ import { useSelectNode } from '@/features/roadmap/selectNode/model'
 import { useConnectNodes } from '@/features/roadmap/connectNodes/model'
 import { SaveWorkspaceModal } from '@/features/workspace/saveWorkspace/ui'
 import { PostWorkspaceModal } from '@/features/workspace/postWorkspace/ui'
+import CustomNode from './CustomNode'
 
 const Workspace = () => {
   const { nodes, onNodesChange, edges, selectedNode } = useWorkspaceStore()
@@ -56,9 +57,19 @@ const Workspace = () => {
     }
   }, [selectedNode])
 
+  const nodeTypes = {
+    custom: CustomNode,
+  }
+
   return (
     <div className="flex h-full w-full overflow-x-hidden">
       <style>{`
+      .react-flow__node {
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
         .react-flow__handle {
           width: 4px;
           height: 4px;
@@ -101,6 +112,7 @@ const Workspace = () => {
           onNodeClick={onNodeClick}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
+          nodeTypes={nodeTypes}
           nodeOrigin={nodeOrigin}
           fitView
           className={`h-full w-full`}

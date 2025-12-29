@@ -1,5 +1,5 @@
 import { NODE_STYLE, useWorkspaceStore } from '@/widgets/workspace/model'
-import { CustomNode } from '@/widgets/workspace/model/types'
+import { CustomNodeType } from '@/widgets/workspace/model/types'
 import { OnConnectEnd, useReactFlow } from '@xyflow/react'
 import { useCallback } from 'react'
 
@@ -21,14 +21,15 @@ const useAddNode = () => {
       const id = nodes.length + 1
       const { clientX, clientY } =
         'changedTouches' in event ? event.changedTouches[0] : event
-      const newNode: CustomNode = {
+      const newNode: CustomNodeType = {
         id: id.toString(),
         position: screenToFlowPosition({
           x: clientX,
           y: clientY,
         }),
-        data: { label: '새 노드' },
+        data: { techId: null, label: null },
         style: { ...NODE_STYLE.default },
+        type: 'custom',
       }
 
       setNodes((nds) => nds.concat(newNode))

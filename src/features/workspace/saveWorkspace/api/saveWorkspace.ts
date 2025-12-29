@@ -1,11 +1,11 @@
 import { api } from '@/shared/libs/axios'
-import { CustomNode } from '@/widgets/workspace/model/types'
+import { CustomNodeType } from '@/widgets/workspace/model/types'
 import { Edge } from '@xyflow/react'
 
 interface saveWorkspaceParams {
   workspaceId?: string // 있으면 PUT, 없으면 POST
   title: string
-  nodes: CustomNode[]
+  nodes: CustomNodeType[]
   edges: Edge[]
 }
 
