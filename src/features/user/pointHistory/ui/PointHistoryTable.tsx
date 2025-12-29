@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { getPointHistory, PointHistoryRow } from '../api/getPointHistory'
 
+// ISO 날짜 문자열을 한국 날짜 형식으로 바꿔서 보여주기 위한 함수
 function formatDate(iso: string) {
   const d = new Date(iso)
   return d.toLocaleDateString('ko-KR')
 }
 
+// 포인트 증감 표시를 +10P / -10P 같은 형식으로 만들기
 function formatPoint(amount: number) {
   const sing = amount > 0 ? '+' : ''
   return `${sing}${amount.toLocaleString()}P`
@@ -17,6 +19,7 @@ const PointHistoryTable = () => {
   const [rows, setRows] = useState<PointHistoryRow[]>([])
   const [loading, setLoading] = useState(true)
 
+  // 컴포넌트가 처음 화면에 나타날 때(마운트) 한 번 실행
   useEffect(() => {
     ;(async () => {
       try {

@@ -6,6 +6,7 @@ export async function GET() {
   try {
     const user = await requireUser()
 
+    // 해당 유저의 포인트 내역 조회
     const { data, error } = await supabase
       .from('point_history')
       .select('*')

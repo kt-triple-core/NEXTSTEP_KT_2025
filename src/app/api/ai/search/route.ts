@@ -1,3 +1,5 @@
+// app/api/ai/search/route.ts
+
 import { NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
 import axios from 'axios'
@@ -7,6 +9,8 @@ export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url)
     const keyword = searchParams.get('keyword')?.trim()
 
+    console.log('🔍 검색 요청:', keyword)
+
     // keyword 없으면 early return
     if (!keyword) {
       return NextResponse.json({ source: 'none', data: [] })
@@ -15,11 +19,17 @@ export const GET = async (req: Request) => {
     // -------------------------------
     // 1) Supabase DB 검색
     // -------------------------------
-    const { data: dbData } = await supabase
+    console.log('📊 DB 검색 시작...')
+
+    const { data: dbData, error: dbError } = await supabase
       .from('techs')
       .select('*')
       .or(`name.ilike.%${keyword}%,description.ilike.%${keyword}%`)
-    // ilike는 대소문자 구분 없는 부분 일치 검색
+
+    // 🔥 DB 에러 체크 추가
+    if (dbError) {
+      throw new Error(`DB 조회 실패: ${dbError.message}`)
+    }
 
     // DB에서 데이터 찾은 경우
     if (dbData && dbData.length > 0) {
@@ -31,12 +41,11 @@ export const GET = async (req: Request) => {
         const lowerName = item.name.toLowerCase()
         const lowerDesc = item.description?.toLowerCase() || ''
 
-        if (lowerName === lowerKeyword) score += 100 // 완전 일치 -> 사용자가 특정 기술 명을 정확하게 입력한 경우
-        if (lowerName.startsWith(lowerKeyword)) score += 50 // 핵심기술/패키지의 변형이나 파생 기술(접두사 일치)
-        if (lowerName.includes(lowerKeyword)) score += 30 // 이름 어딘가에 포함되는 경우
-        if (lowerDesc.includes(lowerKeyword)) score += 10 // 설명에 포함되는 경우
-
-        score += (item.usage_count || 0) * 0.1 // 사용자 인기도 가중치
+        if (lowerName === lowerKeyword) score += 100
+        if (lowerName.startsWith(lowerKeyword)) score += 50
+        if (lowerName.includes(lowerKeyword)) score += 30
+        if (lowerDesc.includes(lowerKeyword)) score += 10
+        score += (item.usage_count || 0) * 0.1
 
         return { ...item, score }
       })
@@ -55,6 +64,8 @@ export const GET = async (req: Request) => {
     // -------------------------------
     // 2) DB에 없으면 OpenAI 검색
     // -------------------------------
+    // console.log('🤖 OpenAI 검색 시작...')
+
     const aiResponse = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -63,9 +74,17 @@ export const GET = async (req: Request) => {
           {
             role: 'user',
             content: `사용자가 "${keyword}"를 입력했습니다.
-              기술이면 name/description/img JSON으로 출력.`,
+이것이 기술 스택 이름이면 다음 형식의 JSON만 출력하세요:
+{
+  "name": "기술명",
+  "description": "간단한 설명",
+  "icon_url": "아이콘 URL 또는 null"
+}
+
+기술 스택이 아니면 빈 객체 {} 를 반환하세요.`,
           },
         ],
+        temperature: 0,
       },
       {
         headers: {
@@ -75,8 +94,20 @@ export const GET = async (req: Request) => {
       }
     )
 
-    // GPT 응답 JSON 파싱
-    const aiData = JSON.parse(aiResponse.data.choices[0].message.content)
+    const aiContent = aiResponse.data.choices[0].message.content.trim()
+
+    // JSON 파싱 (마크다운 코드블록 제거)
+    const cleanContent = aiContent.replace(/```json\n?|\n?```/g, '').trim()
+    const aiData = JSON.parse(cleanContent)
+
+    // 빈 객체면 결과 없음 처리
+    if (Object.keys(aiData).length === 0) {
+      return NextResponse.json({
+        source: 'none',
+        data: [],
+        message: '검색 결과가 없습니다',
+      })
+    }
 
     return NextResponse.json({
       source: 'ai',
@@ -84,7 +115,11 @@ export const GET = async (req: Request) => {
     })
   } catch (error) {
     return NextResponse.json(
-      { error: '검색 중 오류 발생', data: [] },
+      {
+        error: '검색 중 오류 발생',
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+        data: [],
+      },
       { status: 500 }
     )
   }

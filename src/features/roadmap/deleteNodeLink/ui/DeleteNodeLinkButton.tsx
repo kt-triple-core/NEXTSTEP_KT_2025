@@ -47,6 +47,7 @@ const DeleteNodeLinkButton = ({
       variant="secondary"
       className="opacity-0 transition-opacity group-hover:opacity-100"
       onClick={handleDelete}
+      disabled={isDeleting}
     >
       <Trash />
     </Button>

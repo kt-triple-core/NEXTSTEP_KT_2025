@@ -9,7 +9,7 @@ export const POST = async (req: NextRequest) => {
     const { techId, memo } = body
 
     // 메모가 있을 때 저장
-    if (!memo || memo.trim() === '') {
+    if (memo === null) {
       return NextResponse.json({ error: 'memo is required' }, { status: 400 })
     }
 
