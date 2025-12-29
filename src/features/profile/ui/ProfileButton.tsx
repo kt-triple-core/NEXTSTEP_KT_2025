@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
 import {
   type PurchasedItem,
+  AppliedState,
   EMPTY_APPLIED,
 } from '@/features/user/shop/model/decorations'
 import { useQuery } from '@tanstack/react-query'
@@ -17,6 +18,7 @@ type UserRes = {
   name: string | null
   avatar: string | null
   orders: PurchasedItem[]
+  applied: AppliedState
 }
 
 async function getUserProfileForButton() {
@@ -84,12 +86,6 @@ const ProfileButton = () => {
     },
   })
 
-  if (!session?.user) return null
-
-  // 로딩 중(또는 아직 data 없음)에도 세션 값으로 최소한 보여주기
-  const shownName = data?.name ?? session.user.name ?? null
-  const shownAvatar = data?.avatar ?? session.user.image ?? null
-
   const orders = data?.orders ?? []
   const applied = data?.applied ?? EMPTY_APPLIED
 
@@ -113,6 +109,12 @@ const ProfileButton = () => {
     appliedItems.bottomLeft,
     appliedItems.bottomRight,
   ])
+
+  if (!session?.user) return null
+
+  // 로딩 중(또는 아직 data 없음)에도 세션 값으로 최소한 보여주기
+  const shownName = data?.name ?? session.user.name ?? null
+  const shownAvatar = data?.avatar ?? session.user.image ?? null
 
   return (
     <button

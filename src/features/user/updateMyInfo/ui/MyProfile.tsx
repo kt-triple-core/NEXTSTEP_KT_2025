@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/shared/ui'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
   type PurchasedItem,
@@ -11,6 +11,8 @@ import {
   isAccessoryPosition,
   isApplied,
 } from '@/features/user/shop/model/decorations'
+import axios, { AxiosError } from 'axios'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 type Props = {
   onApplied?: () => void
@@ -32,72 +34,92 @@ const tabToCategoryMap: Record<TabKey, PurchasedItem['category']> = {
   nickname: 'nickname',
 }
 
+type UserProfileResponse = {
+  orders: PurchasedItem[]
+  applied: AppliedState
+  message?: string
+}
+
+async function getUserProfile() {
+  const res = await axios.get<UserProfileResponse>('/api/users', {
+    withCredentials: true,
+  })
+  return res.data
+}
+
+type ApplyPayload = {
+  action: 'applyDecoration' | 'clearDecoration'
+  decorationId: string
+  category: PurchasedItem['category']
+  style?: AccessoryPosition | null
+}
+
+async function patchDecoration(payload: ApplyPayload) {
+  const res = await axios.patch('/api/users', payload, {
+    withCredentials: true,
+  })
+  return res.data
+}
+
 const MyProfile = ({ onApplied }: Props) => {
+  const queryClient = useQueryClient()
+
   const [activeTab, setActiveTab] = useState<TabKey>('accessory')
-  const [items, setItems] = useState<PurchasedItem[]>([])
-  const [applied, setApplied] = useState<AppliedState>(EMPTY_APPLIED)
-  const [loading, setLoading] = useState(true)
+  // GET /api/users 캐시 공유 (Profile/ProfileButton/Shop과 같은 key 쓰면 더 좋음)
+  const { data, isFetching } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: getUserProfile,
+    staleTime: 1000 * 30,
+    retry: (failCount, err: AxiosError<any>) => {
+      const status = err?.response?.status
+      if (status && [401, 403, 404].includes(status)) return false
+      return failCount < 2
+    },
+  })
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/users')
-      const data = await res.json()
+  const items = data?.orders ?? []
+  const applied = data?.applied ?? EMPTY_APPLIED
 
-      if (!res.ok) {
-        toast.error(data.message ?? '프로필 조회 실패')
-        return
-      }
+  const filteredItems = useMemo(() => {
+    const category = tabToCategoryMap[activeTab]
+    return items.filter((item) => item.category === category)
+  }, [items, activeTab])
 
-      setItems(data.orders ?? [])
-      setApplied(data.applied ?? EMPTY_APPLIED)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const toggleApplyMutation = useMutation({
+    mutationFn: (payload: ApplyPayload) => patchDecoration(payload),
+    onSuccess: async (_data, vars) => {
+      toast.success(
+        vars.action === 'clearDecoration' ? '해제 완료!' : '적용 완료!'
+      )
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
+      // 서버 상태 갱신: 내 리스트 + Profile 아바타까지 동시에 업데이트
+      await queryClient.invalidateQueries({ queryKey: ['userProfile'] })
 
-  const filteredItems = items.filter(
-    (item) => item.category === tabToCategoryMap[activeTab]
-  )
+      // 부모가 추가로 무언가 하고 싶다면(예: Profile.tsx에서 invalidate) 유지
+      onApplied?.()
+    },
+    onError: (err: AxiosError<any>, vars) => {
+      const msg =
+        err.response?.data?.message ??
+        (vars.action === 'clearDecoration' ? '해제 실패' : '적용 실패')
+      toast.error(msg)
+    },
+  })
 
-  const handleToggleApply = async (item: PurchasedItem) => {
+  const handleToggleApply = (item: PurchasedItem) => {
     const appliedNow = isApplied(item, applied)
 
-    // 해제 시 accessory는 "어느 슬롯을 비울지"가 필요함
-    // (decorationId를 보내도 되지만, 서버는 slot을 알아야 컬럼을 null로 만들 수 있음)
     const style: AccessoryPosition | null =
       item.category === 'accessory' && isAccessoryPosition(item.style)
         ? (item.style as AccessoryPosition)
         : null
 
-    const res = await fetch('/api/users', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: appliedNow ? 'clearDecoration' : 'applyDecoration',
-        // 서버가 현재 decorationId를 요구하도록 되어있으면 항상 보내도 됨
-        decorationId: item.decorationId,
-        category: item.category,
-        style, // accessory만 의미 있음
-      }),
+    toggleApplyMutation.mutate({
+      action: appliedNow ? 'clearDecoration' : 'applyDecoration',
+      decorationId: item.decorationId,
+      category: item.category,
+      style, // accessory만 의미 있음
     })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      toast.error(data.message ?? (appliedNow ? '해제 실패' : '적용 실패'))
-      return
-    }
-
-    toast.success(appliedNow ? '해제 완료!' : '적용 완료!')
-
-    // 내 페이지(리스트)도 갱신 + Profile(아바타)도 갱신
-    await fetchProfile()
-    onApplied?.()
   }
 
   return (
@@ -118,7 +140,7 @@ const MyProfile = ({ onApplied }: Props) => {
         ))}
       </div>
 
-      {loading ? (
+      {isFetching ? (
         <div className="text-sm text-gray-400">불러오는 중...</div>
       ) : filteredItems.length === 0 ? (
         <div className="text-sm text-gray-400">구매한 아이템이 없습니다.</div>
@@ -126,6 +148,7 @@ const MyProfile = ({ onApplied }: Props) => {
         <div className="mt-30 grid grid-cols-4 gap-20">
           {filteredItems.map((item) => {
             const appliedNow = isApplied(item, applied)
+            const pending = toggleApplyMutation.isPending
 
             return (
               <div
@@ -171,6 +194,7 @@ const MyProfile = ({ onApplied }: Props) => {
                         : '!bg-accent !text-[#ffffff]'
                     }`}
                     onClick={() => handleToggleApply(item)}
+                    disabled={pending}
                   >
                     {appliedNow ? '해제하기' : '적용하기'}
                   </Button>
