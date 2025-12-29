@@ -3,7 +3,7 @@ import { CustomNodeType } from './types'
 export const START_NODE_STYLE = {
   default: {
     background: 'var(--color-primary)',
-    borderRadius: '8px',
+    borderRadius: '5px',
     fontSize: '12px',
     border: '1px solid var(--color-primary)',
     width: '80px',
@@ -15,13 +15,13 @@ export const NODE_STYLE = {
   default: {
     background: 'var(--color-primary)',
     color: 'var(--foreground)',
-    borderRadius: '8px',
+    borderRadius: '5px',
     fontSize: '12px',
     border: '1px solid var(--color-primary)',
     width: 'auto',
     minWidth: '80px',
     height: '40px',
-    padding: '0px 10px',
+    padding: '0px 5px',
   },
   selected: {
     border: '1px solid var(--color-accent)',
