@@ -6,6 +6,22 @@ const MAX_EXPERIENCES_PER_USER = 3
 
 const AVATAR_BUCKET = 'avatars'
 
+type Category = 'accessory' | 'border' | 'title' | 'nickname'
+type Position = 'top' | 'bottom-left' | 'bottom-right'
+
+type ApplyDecorationBody =
+  | {
+      action: 'applyDecoration'
+      decorationId: string
+      category: Category
+      style?: Position | null // accessory만
+    }
+  | {
+      action: 'clearDecoration'
+      category: Category
+      style?: Position | null // accessory만 (어느 슬롯 비울지)
+    }
+
 type PatchBody = {
   name?: string
 
@@ -16,6 +32,8 @@ type PatchBody = {
     delete?: string[] // experienceId 리스트
   }
 }
+
+type PatchRequestBody = PatchBody | ApplyDecorationBody
 
 function validateField(field: string) {
   const v = String(field ?? '').trim()
@@ -29,7 +47,7 @@ function validateYear(year: number) {
   return v
 }
 
-// GET: 사용자 프로필 + 커리어 리스트 조회
+// GET: 사용자 프로필 + 커리어 리스트 조회 + 구매 내역 조회
 export async function GET() {
   try {
     const { userId } = await requireUser()
@@ -37,7 +55,15 @@ export async function GET() {
     // 사용자 정보 조회
     const { data: user, error: userErr } = await supabaseAdmin
       .from('users')
-      .select('user_id, email, name, avatar, point, status')
+      .select(
+        ` user_id, email, name, avatar, point, status,
+    decoration_border,
+    decoration_title,
+    decoration_name_color,
+    decoration_top,
+    decoration_bottom_left,
+    decoration_bottom_right`
+      )
       .eq('user_id', userId)
       .eq('status', true)
       .single()
@@ -58,6 +84,44 @@ export async function GET() {
 
     if (expErr) throw expErr
 
+    //  구매 내역 조회 (orders -> decorations 조인)
+    const { data: orders, error: orderErr } = await supabaseAdmin
+      .from('orders')
+      .select(
+        `
+        order_id,
+        created_at,
+        decoration:decorations (
+          decoration_id,
+          name,
+          price,
+          category,
+          style,
+          source,
+          status
+        )
+      `
+      )
+      .eq('user_id', userId)
+      .eq('status', true)
+      .order('created_at', { ascending: false })
+
+    if (orderErr) throw orderErr
+
+    //  프론트에서 쓰기 좋은 형태로 변환
+    const purchased = (orders ?? [])
+      .filter((o: any) => o.decoration && o.decoration.status === true)
+      .map((o: any) => ({
+        orderId: o.order_id,
+        purchasedAt: o.created_at,
+        decorationId: o.decoration.decoration_id,
+        name: o.decoration.name,
+        price: o.decoration.price,
+        category: o.decoration.category,
+        style: o.decoration.style,
+        source: o.decoration.source,
+      }))
+
     return NextResponse.json({
       userId: user.user_id,
       email: user.email,
@@ -69,9 +133,24 @@ export async function GET() {
         field: e.field,
         year: e.year,
       })),
+      //  추가된 부분
+      orders: purchased,
+
+      applied: {
+        borderId: user.decoration_border ?? null,
+        titleId: user.decoration_title ?? null,
+        nicknameColorId: user.decoration_name_color ?? null,
+        topId: user.decoration_top ?? null,
+        bottomLeftId: user.decoration_bottom_left ?? null,
+        bottomRightId: user.decoration_bottom_right ?? null,
+      },
     })
-  } catch (e) {
-    return NextResponse.json({ message: 'Server error' }, { status: 500 })
+  } catch (e: any) {
+    console.error('GET /api/users error:', e)
+    return NextResponse.json(
+      { message: 'Server error', detail: e?.message ?? String(e) },
+      { status: 500 }
+    )
   }
 }
 
@@ -102,21 +181,137 @@ export async function PATCH(req: Request) {
       const formData = await req.formData()
 
       // 폼데이터로 name/experiences를 같이 받을 경우
-      // File은 JSON으로 못보냄
       const name = formData.get('name')
       const experiences = formData.get('experiences') // JSON string
+      const action = formData.get('action')
+      const decorationId = formData.get('decorationId')
+      const category = formData.get('category')
+      const style = formData.get('style')
 
-      if (typeof name === 'string') body.name = name
-      if (typeof experiences === 'string') {
-        body.experiences = JSON.parse(experiences)
-      }
+      const obj: any = {}
+      if (typeof name === 'string') obj.name = name
+      if (typeof experiences === 'string')
+        obj.experiences = JSON.parse(experiences)
+
+      // 데코 적용도 multipart로 보낼 수 있게(선택)
+      if (typeof action === 'string') obj.action = action
+      if (typeof decorationId === 'string') obj.decorationId = decorationId
+      if (typeof category === 'string') obj.category = category
+      if (typeof style === 'string') obj.style = style
+
+      body = obj as PatchRequestBody
 
       const file = formData.get('avatar')
       if (file instanceof File) avatarFile = file
     } else {
-      // 기존 방식 유지 (application/json)
-      body = (await req.json()) as PatchBody
+      // application/json
+      body = (await req.json()) as PatchRequestBody
     }
+
+    // ✅ 0) 데코 적용 / 해제 요청
+    if (
+      body &&
+      (body as any).action &&
+      ((body as any).action === 'applyDecoration' ||
+        (body as any).action === 'clearDecoration')
+    ) {
+      const { action, category, style } = body as ApplyDecorationBody
+      const decorationId =
+        action === 'applyDecoration' ? (body as any).decorationId : null
+
+      if (!category) {
+        return NextResponse.json(
+          { message: 'category is required' },
+          { status: 400 }
+        )
+      }
+
+      // apply일 때만 구매 검증
+      if (action === 'applyDecoration') {
+        if (!decorationId) {
+          return NextResponse.json(
+            { message: 'decorationId is required' },
+            { status: 400 }
+          )
+        }
+
+        const { data: order, error } = await supabaseAdmin
+          .from('orders')
+          .select('order_id')
+          .eq('user_id', userId)
+          .eq('decoration_id', decorationId)
+          .eq('status', true)
+          .maybeSingle()
+
+        if (error) throw error
+        if (!order) {
+          return NextResponse.json(
+            { message: '구매한 아이템만 적용할 수 있습니다.' },
+            { status: 403 }
+          )
+        }
+      }
+
+      // users 테이블 업데이트 payload
+      const patch: Record<string, string | null> = {}
+
+      switch (category) {
+        case 'border':
+          patch.decoration_border =
+            action === 'applyDecoration' ? decorationId : null
+          break
+
+        case 'title':
+          patch.decoration_title =
+            action === 'applyDecoration' ? decorationId : null
+          break
+
+        case 'nickname':
+          patch.decoration_name_color =
+            action === 'applyDecoration' ? decorationId : null
+          break
+
+        case 'accessory':
+          if (!style) {
+            return NextResponse.json(
+              { message: 'accessory requires style' },
+              { status: 400 }
+            )
+          }
+
+          if (style === 'top') {
+            patch.decoration_top =
+              action === 'applyDecoration' ? decorationId : null
+          }
+          if (style === 'bottom-left') {
+            patch.decoration_bottom_left =
+              action === 'applyDecoration' ? decorationId : null
+          }
+          if (style === 'bottom-right') {
+            patch.decoration_bottom_right =
+              action === 'applyDecoration' ? decorationId : null
+          }
+          break
+      }
+
+      const { error: updErr } = await supabaseAdmin
+        .from('users')
+        .update(patch)
+        .eq('user_id', userId)
+        .eq('status', true)
+
+      if (updErr) throw updErr
+
+      return NextResponse.json({
+        message: action === 'applyDecoration' ? '적용 완료' : '해제 완료',
+        applied: patch,
+      })
+    }
+
+    // -----------------------------
+    // 아래부터는 기존 프로필 PATCH 로직
+    // -----------------------------
+    const profileBody = body as PatchBody
 
     // PDF, exe, txt업로드 방지
     if (avatarFile) {
@@ -169,8 +364,8 @@ export async function PATCH(req: Request) {
     }
 
     //  1) 이름 업데이트(옵션) — name만 보내도 동작
-    if (body.name !== undefined) {
-      const name = String(body.name ?? '').trim()
+    if (profileBody.name !== undefined) {
+      const name = String(profileBody.name ?? '').trim()
       if (!name || name.length > 30) {
         return NextResponse.json({ message: 'Invalid name' }, { status: 400 })
       }
@@ -184,10 +379,10 @@ export async function PATCH(req: Request) {
     }
 
     //  2) experiences 변경(옵션) — experiences가 "명시적으로" 있을 때만 처리
-    if (body.experiences !== undefined) {
-      const creates = body.experiences.create ?? []
-      const updates = body.experiences.update ?? []
-      const deletes = body.experiences.delete ?? []
+    if (profileBody.experiences !== undefined) {
+      const creates = profileBody.experiences.create ?? []
+      const updates = profileBody.experiences.update ?? []
+      const deletes = profileBody.experiences.delete ?? []
 
       // 현재 활성 experiences 개수 체크(최대 3 제한을 안전하게)
       const { count, error: countError } = await supabaseAdmin

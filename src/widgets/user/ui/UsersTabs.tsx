@@ -19,7 +19,7 @@ const UsersTabs = () => {
   const tabFromUrl = (searchParams.get('tab') as TabKey) || 'profile'
   const subFromUrl = (searchParams.get('sub') as SubKey) || null
 
-  // ✅ active 탭은 tabFromUrl 그대로 (sub가 있어도 quest 유지)
+  // active 탭은 tabFromUrl 그대로 (sub가 있어도 quest 유지)
   const activeTab: TabKey = tabFromUrl
   const renderTab = () => {
     if (activeTab === 'quest' && subFromUrl === 'point') {
