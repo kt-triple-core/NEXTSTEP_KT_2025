@@ -48,6 +48,7 @@ const Profile = () => {
 
   const [orders, setOrders] = useState<PurchasedItem[]>([])
   const [applied, setApplied] = useState<AppliedState>(EMPTY_APPLIED)
+  const [profileName, setProfileName] = useState<string>('')
 
   // useEffect 의존성/재생성 문제 방지
   const fetchUserProfile = useCallback(async () => {
@@ -62,6 +63,7 @@ const Profile = () => {
 
     setOrders(data.orders ?? [])
     setApplied(data.applied ?? EMPTY_APPLIED)
+    setProfileName(data.name)
   }, [])
 
   useEffect(() => {
@@ -127,7 +129,7 @@ const Profile = () => {
         <div className="relative inline-block w-250">
           <div className="relative inline-block">
             <ProfileAvatar
-              name={user.name}
+              name={profileName || user.name}
               image={previewImage ?? user.image}
               size={250}
             />
@@ -207,7 +209,7 @@ const Profile = () => {
                   : undefined
               }
             >
-              {user.name}
+              {profileName}
             </div>
           </div>
         </div>

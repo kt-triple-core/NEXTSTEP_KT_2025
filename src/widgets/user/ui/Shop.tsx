@@ -43,12 +43,24 @@ const Shop = () => {
   const { point } = useMyPoint()
   const [displayPoint, setDisplayPoint] = useState<number | null>(null)
   const shownPoint = displayPoint ?? point
+  const [profileName, setProfileName] = useState<string>('')
 
   const handlePurchased = (newPoint: number) => {
     setDisplayPoint(newPoint)
   }
 
   if (!session?.user) return null
+
+  useEffect(() => {
+    if (!session?.user) return
+    ;(async () => {
+      const res = await fetch('/api/users')
+      const data = await res.json()
+
+      if (!res.ok) return
+      setProfileName(data.name ?? session.user.name ?? '')
+    })()
+  }, [session?.user])
 
   const handlePreviewSelect = (item: DecorationItem) => {
     setPreview((prev) => {
@@ -97,10 +109,10 @@ const Shop = () => {
 
   return (
     <main className="flex gap-80 px-50 pt-20">
-      <div>
+      <div className="sticky top-20 shrink-0 self-start">
         <div className="relative inline-block w-250">
           <ProfileAvatar
-            name={session.user.name}
+            name={profileName || session.user.name}
             image={session.user.image}
             size={250}
           />
@@ -135,7 +147,7 @@ const Shop = () => {
             className="text-sm font-medium"
             style={nicknameColor ? { color: nicknameColor } : undefined}
           >
-            {session.user.name}
+            {profileName}
           </div>
           {/*  초기화 버튼 */}
           <Button
