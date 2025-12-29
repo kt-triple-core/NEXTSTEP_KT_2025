@@ -8,6 +8,7 @@ import { LinkForm } from '@/features/roadmap/postNodeLink/ui'
 import { TroubleshootingForm } from '@/features/roadmap/postNodeTroubleshooting/ui'
 import { useWorkspaceStore } from '../model'
 import { DeleteNodeLinkButton } from '@/features/roadmap/deleteNodeLink/ui'
+import DeleteNodeTroubleshootingButton from '@/features/roadmap/deleteNodeTroubleshooting/ui/DeleteNodeLinkButton'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -162,17 +163,11 @@ const NodeInformation = ({
                         </p>
                         <div>{item.troubleshooting}</div>
                       </div>
-                      <Button
-                        variant="secondary"
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                        // onClick={() =>
-                        //   handleDeleteTroubleshooting(
-                        //     item.nodeTroubleshootingId
-                        //   )
-                        // }
-                      >
-                        <Trash />
-                      </Button>
+                      <DeleteNodeTroubleshootingButton
+                        techId={selectedNode.data.techId}
+                        nodeTroubleshootingId={item.nodeTroubleshootingId}
+                        troubleshootings={troubleshootings}
+                      />
                     </li>
                   ))}
                 </ul>
