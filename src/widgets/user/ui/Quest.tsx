@@ -62,8 +62,8 @@ const initialQuests: QuestUI[] = [
   },
   {
     id: 4,
-    title: '새로운 워크스페이스 만들기',
-    description: '새로운 작업 환경을 만들어보세요.',
+    title: '새로운 로드맵 추가하기',
+    description: '새로운 로드맵을 만들어보세요.',
     targetCount: 1,
     rewardPoint: 50,
     variant: 'locked',
