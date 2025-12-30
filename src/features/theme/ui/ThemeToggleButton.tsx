@@ -4,10 +4,12 @@ import Sun from './SunIcon'
 import Moon from './MoonIcon'
 
 const ThemeToggleButton = () => {
-  const { theme, toggleTheme } = useThemeStore()
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
+
   return (
     <Button onClick={toggleTheme} className="h-50 w-50">
-      {theme === 'light' ? <Sun /> : <Moon />}
+      <Sun className="dark:hidden" />
+      <Moon className="hidden dark:block" />
     </Button>
   )
 }

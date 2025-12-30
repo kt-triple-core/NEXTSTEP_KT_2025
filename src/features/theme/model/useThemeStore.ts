@@ -8,12 +8,19 @@ interface ThemeState {
   toggleTheme: () => void
 }
 
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light'
+  return (localStorage.getItem('theme') as Theme) ?? 'light'
+}
+
 const useThemeStore = create<ThemeState>((set) => ({
-  theme: 'light',
+  theme: getInitialTheme(),
+
   setTheme: (theme) => {
     localStorage.setItem('theme', theme)
     set({ theme })
   },
+
   toggleTheme: () =>
     set((state) => {
       const next = state.theme === 'light' ? 'dark' : 'light'

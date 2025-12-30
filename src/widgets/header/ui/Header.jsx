@@ -13,12 +13,21 @@ const Header = () => {
   return (
     <header className="bg-primary flex h-80 w-full shrink-0 items-center justify-between px-30">
       <div className="flex items-center">
-        <Image
-          src={theme === 'dark' ? mainLogowhite : mainLogo}
-          alt="메인 로고"
-          width={150}
-          height={40}
-        />
+        <div className="relative h-40 w-[150px]">
+          <Image
+            src={mainLogo}
+            alt="메인 로고"
+            fill
+            className="object-contain dark:hidden"
+          />
+          <Image
+            src={mainLogowhite}
+            alt="메인 로고"
+            fill
+            className="hidden object-contain dark:block"
+          />
+        </div>
+
         <Nav />
       </div>
       <div className="flex gap-10">
