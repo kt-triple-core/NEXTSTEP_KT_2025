@@ -165,7 +165,7 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         ...state.current,
         memos: {
           ...state.current.memos,
-          [techId]: { memo },
+          [techId]: { ...state.current.memos[techId], memo },
         },
       },
     })),
