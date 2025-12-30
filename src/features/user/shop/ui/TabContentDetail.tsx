@@ -108,9 +108,16 @@ const TabContentDetail = ({ item, onClickPreview, onPurchased }: Props) => {
 
       <div className="flex flex-col items-center gap-5">
         {isNickname ? (
+          // 닉네임: 항상 기본 검정 텍스트
           <div className="text-lg font-medium text-black">{item.name}</div>
-        ) : (
+        ) : isTitle ? (
+          // 타이틀: 색상/스타일은 source(class)만 사용
           <div className={`mt-10 text-lg font-medium ${item.source ?? ''}`}>
+            {item.name}
+          </div>
+        ) : (
+          // 그 외(악세사리/테두리 등)
+          <div className="mt-10 text-lg font-medium dark:text-black">
             {item.name}
           </div>
         )}
