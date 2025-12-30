@@ -13,10 +13,13 @@ import {
   NodeMemo,
   NodeTroubleshooting,
   WorkspaceData,
+  WorkspaceSnapshot,
 } from './types'
 
 type WorkspaceStore = {
-  // ReactFlow의 노드와 엣지
+  /* =========================
+   * React Flow
+   ========================= */
   nodes: CustomNodeType[]
   edges: Edge[]
   setNodes: (
@@ -26,57 +29,97 @@ type WorkspaceStore = {
   onNodesChange: (changes: NodeChange<CustomNodeType>[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
 
-  // 선택된 노드
+  /* =========================
+   * Selection
+   ========================= */
   selectedNode: CustomNodeType | null
   setSelectedNode: (node: CustomNodeType | null) => void
 
-  // 현재 워크스페이스 정보
+  /* =========================
+   * Workspace Meta
+   ========================= */
   workspaceId: string | null
-  setWorkspaceId: (id: string | null) => void
-  workspaceTitle: string | null
-  setWorkspaceTitle: (title: string | null) => void
+  workspaceTitle: string
   lastSaved: Date | null
-  setLastSaved: (date: Date | null) => void
+  setWorkspaceTitle: (title: string) => void
 
-  // 노드별 데이터
-  nodeMemos: Record<string, NodeMemo>
-  nodeLinks: Record<string, NodeLink[]>
-  nodeTroubleshootings: Record<string, NodeTroubleshooting[]>
-  setNodeMemos: (techId: string, memo: NodeMemo) => void
-  setNodeLinks: (techId: string, links: NodeLink[]) => void
-  setNodeTroubleshootings: (
-    techId: string,
-    troubleshootings: NodeTroubleshooting[]
-  ) => void
+  /* =========================
+   * Snapshot
+   ========================= */
+  original: WorkspaceSnapshot | null
+  current: WorkspaceSnapshot
+  getCurrentSnapshot: () => WorkspaceSnapshot
+  syncOriginalToCurrent: () => void
 
-  // 특정 techId의 데이터 가져오기
+  /* =========================
+   * Memo
+   ========================= */
+  setNodeMemo: (techId: string, memo: string) => void
   getNodeMemo: (techId: string | null) => NodeMemo | null
+
+  /* =========================
+   * Links
+   ========================= */
+  addNodeLink: (techId: string, link: NodeLink) => void
+  removeNodeLink: (techId: string, nodeLinkId: string) => void
   getNodeLinks: (techId: string | null) => NodeLink[]
+
+  /* =========================
+   * Troubleshooting
+   ========================= */
+  addNodeTroubleshooting: (
+    techId: string,
+    troubleshooting: NodeTroubleshooting
+  ) => void
+  removeNodeTroubleshooting: (
+    techId: string,
+    nodeTroubleshootingId: string
+  ) => void
   getNodeTroubleshootings: (techId: string | null) => NodeTroubleshooting[]
 
-  // store 초기화
+  /* =========================
+   * Initialize / Reset
+   ========================= */
   initializeWithData: (data: WorkspaceData) => void
   resetToEmpty: () => void
 }
 
+const emptySnapshot: WorkspaceSnapshot = {
+  memos: {},
+  links: {},
+  troubleshootings: {},
+}
+
 const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
+  /* =========================
+   * React Flow
+   ========================= */
   nodes: initialNodes,
   edges: [],
 
   setNodes: (nodes) =>
-    set({ nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes }),
+    set({
+      nodes: typeof nodes === 'function' ? nodes(get().nodes) : nodes,
+    }),
+
   setEdges: (edges) =>
-    set({ edges: typeof edges === 'function' ? edges(get().edges) : edges }),
+    set({
+      edges: typeof edges === 'function' ? edges(get().edges) : edges,
+    }),
 
   onNodesChange: (changes) =>
     set((state) => ({
-      nodes: applyNodeChanges<CustomNodeType>(changes, state.nodes),
+      nodes: applyNodeChanges(changes, state.nodes),
     })),
+
   onEdgesChange: (changes) =>
     set((state) => ({
       edges: applyEdgeChanges(changes, state.edges),
     })),
 
+  /* =========================
+   * Selection
+   ========================= */
   selectedNode: null,
   setSelectedNode: (node) =>
     set((state) => ({
@@ -94,57 +137,114 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       })),
     })),
 
+  /* =========================
+   * Workspace Meta
+   ========================= */
   workspaceId: null,
-  setWorkspaceId: (id) => set({ workspaceId: id }),
   workspaceTitle: '새 워크스페이스',
-  setWorkspaceTitle: (title) => set({ workspaceTitle: title }),
   lastSaved: null,
-  setLastSaved: (date) => set({ lastSaved: date }),
+  setWorkspaceTitle: (title) => set({ workspaceTitle: title }),
 
-  nodeMemos: {},
-  nodeLinks: {},
-  nodeTroubleshootings: {},
-
-  setNodeMemos: (techId: string, memo: NodeMemo) =>
+  /* =========================
+   * Snapshot
+   ========================= */
+  original: null,
+  current: emptySnapshot,
+  getCurrentSnapshot: () => get().current,
+  syncOriginalToCurrent: () =>
     set((state) => ({
-      nodeMemos: {
-        ...state.nodeMemos,
-        [techId]: memo,
-      },
+      original: structuredClone(state.current),
     })),
 
-  setNodeLinks: (techId: string, links: NodeLink[]) =>
+  /* =========================
+   * Memo
+   ========================= */
+  setNodeMemo: (techId, memo) =>
     set((state) => ({
-      nodeLinks: {
-        ...state.nodeLinks,
-        [techId]: links,
-      },
-    })),
-
-  setNodeTroubleshootings: (
-    techId: string,
-    troubleshootings: NodeTroubleshooting[]
-  ) =>
-    set((state) => ({
-      nodeTroubleshootings: {
-        ...state.nodeTroubleshootings,
-        [techId]: troubleshootings,
+      current: {
+        ...state.current,
+        memos: {
+          ...state.current.memos,
+          [techId]: { memo },
+        },
       },
     })),
 
   getNodeMemo: (techId) => {
     if (!techId) return null
-    return get().nodeMemos[techId] || null
-  },
-  getNodeLinks: (techId) => {
-    if (!techId) return []
-    return get().nodeLinks[techId] || []
-  },
-  getNodeTroubleshootings: (techId) => {
-    if (!techId) return []
-    return get().nodeTroubleshootings[techId] || []
+    return get().current.memos[techId] ?? null
   },
 
+  /* =========================
+   * Links
+   ========================= */
+  addNodeLink: (techId, link) =>
+    set((state) => ({
+      current: {
+        ...state.current,
+        links: {
+          ...state.current.links,
+          [techId]: [link, ...(state.current.links[techId] ?? [])],
+        },
+      },
+    })),
+
+  removeNodeLink: (techId, nodeLinkId) =>
+    set((state) => ({
+      current: {
+        ...state.current,
+        links: {
+          ...state.current.links,
+          [techId]: (state.current.links[techId] ?? []).filter(
+            (l) => l.nodeLinkId !== nodeLinkId
+          ),
+        },
+      },
+    })),
+
+  getNodeLinks: (techId) => {
+    if (!techId) return []
+    return get().current.links[techId] ?? []
+  },
+
+  /* =========================
+   * Troubleshooting
+   ========================= */
+  addNodeTroubleshooting: (techId, troubleshooting) =>
+    set((state) => ({
+      current: {
+        ...state.current,
+        troubleshootings: {
+          ...state.current.troubleshootings,
+          [techId]: [
+            troubleshooting,
+            ...(state.current.troubleshootings[techId] ?? []),
+          ],
+        },
+      },
+    })),
+
+  removeNodeTroubleshooting: (techId, nodeTroubleshootingId) =>
+    set((state) => ({
+      current: {
+        ...state.current,
+        troubleshootings: {
+          ...state.current.troubleshootings,
+          [techId]: (state.current.troubleshootings[techId] ?? []).filter(
+            (t) => t.nodeTroubleshootingId !== nodeTroubleshootingId
+          ),
+        },
+      },
+    })),
+
+  getNodeTroubleshootings: (techId) => {
+    if (!techId) return []
+    return get().current.troubleshootings[techId] ?? []
+  },
+
+  /* =========================
+   * Initialize / Reset
+   ========================= */
   initializeWithData: (data) =>
     set({
       workspaceId: data.workspaceId,
@@ -152,12 +252,20 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       nodes: data.nodes || initialNodes,
       edges: data.edges || [],
       lastSaved: new Date(data.updatedAt),
-      nodeMemos: data.memos || {},
-      nodeLinks: data.links || {},
-      nodeTroubleshootings: data.troubleshootings || {},
+
+      original: {
+        memos: data.memos || {},
+        links: data.links || {},
+        troubleshootings: data.troubleshootings || {},
+      },
+
+      current: {
+        memos: data.memos || {},
+        links: data.links || {},
+        troubleshootings: data.troubleshootings || {},
+      },
     }),
 
-  // 빈 워크스페이스로 리셋
   resetToEmpty: () =>
     set({
       nodes: initialNodes,
@@ -166,9 +274,8 @@ const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       workspaceTitle: '새 워크스페이스',
       lastSaved: null,
       selectedNode: null,
-      nodeMemos: {},
-      nodeLinks: {},
-      nodeTroubleshootings: {},
+      original: null,
+      current: emptySnapshot,
     }),
 }))
 

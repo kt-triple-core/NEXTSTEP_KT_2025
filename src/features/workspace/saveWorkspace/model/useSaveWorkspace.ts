@@ -10,18 +10,22 @@ const useSaveWorkspace = () => {
   const router = useRouter()
   const mutation = useMutation({
     mutationFn: (workspaceTitle: string) => {
-      const { nodes, edges, workspaceId } = useWorkspaceStore.getState()
+      const { nodes, edges, workspaceId, getCurrentSnapshot } =
+        useWorkspaceStore.getState()
       const updatedNodes = deselectAllNodes(nodes)
 
       if (!workspaceTitle?.trim()) {
         throw new Error('워크스페이스 제목을 입력해주세요')
       }
 
+      const snapshot = getCurrentSnapshot()
+
       return saveWorkspace({
         workspaceId: workspaceId || undefined,
         title: workspaceTitle,
         nodes: updatedNodes,
         edges,
+        snapshot,
       })
     },
 
@@ -34,6 +38,7 @@ const useSaveWorkspace = () => {
         workspaceTitle: data.title,
         lastSaved: data.createdAt,
       })
+      useWorkspaceStore.getState().syncOriginalToCurrent()
 
       // 워크스페이스 리스트 다시 가져오기
       queryClient.invalidateQueries({ queryKey: ['workspaceList'] })
