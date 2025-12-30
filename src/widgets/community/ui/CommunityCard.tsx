@@ -25,7 +25,6 @@ const CommunityCard = ({
   const { theme } = useThemeStore()
   const isDark = theme === 'dark'
 
-  // 워크스페이스 배경 색
   const bgColor = isDark ? '#1f2937' : '#e5e5e5'
   const gridColor = isDark ? '#374151' : '#d1d5db'
 
@@ -33,14 +32,11 @@ const CommunityCard = ({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-300 flex-col overflow-hidden rounded-2xl text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+      className="bg-primary flex h-300 flex-col overflow-hidden rounded-2xl text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
       style={{ backgroundColor: bgColor }}
     >
-      {/* 상단 미리보기 */}
-      <div
-        className="pointer-events-none flex-1"
-        style={{ backgroundColor: bgColor }}
-      >
+      {/* 상단 워크스페이스 미리보기 */}
+      <div className="pointer-events-none flex-1">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -54,7 +50,6 @@ const CommunityCard = ({
           panOnDrag={false}
           proOptions={{ hideAttribution: true }}
         >
-          {/* 다크/라이트 모드 대응 배경 */}
           <Background variant={BackgroundVariant.Lines} color={gridColor} />
         </ReactFlow>
       </div>
@@ -79,4 +74,5 @@ const CommunityCard = ({
     </button>
   )
 }
+
 export default CommunityCard

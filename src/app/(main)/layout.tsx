@@ -8,9 +8,9 @@ export default function MainLayout({
   return (
     <div className="h-dvh w-full overflow-hidden">
       {/* Header (고정) */}
-      <header className="fixed top-0 left-0 z-50 h-80 w-full">
+      <div className="fixed top-0 left-0 z-50 h-80 w-full">
         <Header />
-      </header>
+      </div>
 
       {/* Content 영역 */}
       <main

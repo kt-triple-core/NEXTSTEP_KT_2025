@@ -8,9 +8,10 @@ import TAB_LIST from '@/widgets/user/model/constants'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Point from '@/widgets/user/ui/Point'
 import Order from './Order'
+import Admin from '@/widgets/admin/ui/Admin'
 
-type TabKey = 'profile' | 'quest' | 'shop' | 'point'
-type SubKey = 'point' | 'order' | null
+type TabKey = 'profile' | 'quest' | 'shop' | 'point' | 'admin'
+type SubKey = 'point' | null
 
 const UsersTabs = () => {
   const router = useRouter()
@@ -36,6 +37,8 @@ const UsersTabs = () => {
         return <Quest />
       case 'shop':
         return <Shop />
+      case 'admin':
+        return <Admin />
       default:
         return null
     }

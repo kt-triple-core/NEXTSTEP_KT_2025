@@ -16,6 +16,7 @@ type Post = {
   } | null
 }
 
+// listId가 있으면 분야별로 없으면 전체 게시글을 불러옴
 interface CommunityCardGridProps {
   listId?: string | null
 }
@@ -25,6 +26,7 @@ const CommunityCardGrid = ({ listId }: CommunityCardGridProps) => {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
 
+  //listId가 변경되면 게시글 목록 API 다시 호출 (사이드바에서 카테고리 바꿀 때 자동으로 갱신됨)
   useEffect(() => {
     const fetchPosts = async () => {
       try {

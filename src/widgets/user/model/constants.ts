@@ -3,6 +3,7 @@ const TAB_LIST = [
   { key: 'quest', label: '퀘스트' },
   { key: 'shop', label: '상점' },
   { key: 'point' },
+  { key: 'admin', label: '관리자' },
 ] as const
 
 export default TAB_LIST
