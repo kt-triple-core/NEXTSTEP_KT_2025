@@ -189,10 +189,10 @@ const Shop = () => {
               </div>
 
               <Button
-                onClick={() => router.push('/users?tab=quest&sub=point')}
+                onClick={() => router.push('/users?tab=shop&sub=order')}
                 className="rounded-sm px-12 py-4 font-medium hover:opacity-80 hover:transition"
               >
-                포인트 내역 확인하기
+                구매 내역 확인하기
               </Button>
             </div>
           </div>

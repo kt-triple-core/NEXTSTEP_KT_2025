@@ -138,109 +138,107 @@ const Profile = () => {
 
   return (
     <main className="flex gap-80 px-50 pt-20">
-      <div>
+      <div className="sticky top-40 shrink-0 self-start">
         <div className="relative inline-block w-250">
-          <div className="relative inline-block">
-            <ProfileAvatar
-              name={profileName}
-              image={previewImage ?? profile?.avatar ?? user.image}
-              size={250}
-            />
+          <ProfileAvatar
+            name={profileName}
+            image={previewImage ?? profile?.avatar ?? user.image}
+            size={250}
+          />
 
-            {/* border */}
-            {appliedBorder?.source && (
-              <div className="pointer-events-none absolute inset-0">
-                <DecorationImage
-                  category="border"
-                  style={appliedBorder.style as any}
-                  source={appliedBorder.source}
-                  scale={appliedBorder.scale ?? 1.2}
-                />
-              </div>
-            )}
+          {/* border */}
+          {appliedBorder?.source && (
+            <div className="pointer-events-none absolute inset-0">
+              <DecorationImage
+                category="border"
+                style={appliedBorder.style as any}
+                source={appliedBorder.source}
+                scale={appliedBorder.scale ?? 1.2}
+              />
+            </div>
+          )}
 
-            {/* accessory top */}
-            {appliedTop?.source && (
-              <div className="pointer-events-none absolute inset-0">
-                <DecorationImage
-                  category="accessory"
-                  style={appliedTop.style as any}
-                  source={appliedTop.source}
-                  baseSize={200}
-                />
-              </div>
-            )}
+          {/* accessory top */}
+          {appliedTop?.source && (
+            <div className="pointer-events-none absolute inset-0">
+              <DecorationImage
+                category="accessory"
+                style={appliedTop.style as any}
+                source={appliedTop.source}
+                baseSize={200}
+              />
+            </div>
+          )}
 
-            {/* accessory bottom-left */}
-            {appliedBottomLeft?.source && (
-              <div className="pointer-events-none absolute inset-0">
-                <DecorationImage
-                  category="accessory"
-                  style={appliedBottomLeft.style as any}
-                  source={appliedBottomLeft.source}
-                  baseSize={200}
-                />
-              </div>
-            )}
+          {/* accessory bottom-left */}
+          {appliedBottomLeft?.source && (
+            <div className="pointer-events-none absolute inset-0">
+              <DecorationImage
+                category="accessory"
+                style={appliedBottomLeft.style as any}
+                source={appliedBottomLeft.source}
+                baseSize={200}
+              />
+            </div>
+          )}
 
-            {/* accessory bottom-right */}
-            {appliedBottomRight?.source && (
-              <div className="pointer-events-none absolute inset-0">
-                <DecorationImage
-                  category="accessory"
-                  style={appliedBottomRight.style as any}
-                  source={appliedBottomRight.source}
-                  baseSize={200}
-                />
-              </div>
-            )}
+          {/* accessory bottom-right */}
+          {appliedBottomRight?.source && (
+            <div className="pointer-events-none absolute inset-0">
+              <DecorationImage
+                category="accessory"
+                style={appliedBottomRight.style as any}
+                source={appliedBottomRight.source}
+                baseSize={200}
+              />
+            </div>
+          )}
 
-            <button
-              onClick={handleEditClick}
-              disabled={uploadAvatarMutation.isPending}
-              className="absolute top-20 right-0 flex items-center justify-center rounded-full bg-white p-12 shadow-md hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-              title={
-                uploadAvatarMutation.isPending
-                  ? '업로드 중...'
-                  : '프로필 이미지 수정'
-              }
-            >
-              ✏️
-            </button>
+          <button
+            onClick={handleEditClick}
+            disabled={uploadAvatarMutation.isPending}
+            className="absolute top-20 right-0 flex items-center justify-center rounded-full bg-white p-12 shadow-md hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+            title={
+              uploadAvatarMutation.isPending
+                ? '업로드 중...'
+                : '프로필 이미지 수정'
+            }
+          >
+            ✏️
+          </button>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* title / nickname */}
+        <div className="mt-30 flex flex-col items-center gap-6">
+          <div
+            className={`text-lg font-semibold ${appliedTitle?.source ?? ''}`}
+          >
+            {appliedTitle?.name ?? '칭호 없음'}
           </div>
 
-          {/* title / nickname */}
-          <div className="mt-30 flex flex-col items-center gap-6">
-            <div
-              className={`text-lg font-semibold ${appliedTitle?.source ?? ''}`}
-            >
-              {appliedTitle?.name ?? '칭호 없음'}
-            </div>
-
-            <div
-              className="text-sm font-medium"
-              style={
-                appliedNickname?.source
-                  ? { color: appliedNickname.source }
-                  : undefined
-              }
-            >
-              {profileName}
-            </div>
-
-            {/* (선택) 로딩 표시 */}
-            {isFetching && (
-              <div className="text-xs text-gray-400">불러오는 중...</div>
-            )}
+          <div
+            className="text-sm font-medium"
+            style={
+              appliedNickname?.source
+                ? { color: appliedNickname.source }
+                : undefined
+            }
+          >
+            {profileName}
           </div>
+
+          {/* (선택) 로딩 표시 */}
+          {isFetching && (
+            <div className="text-xs text-gray-400">불러오는 중...</div>
+          )}
         </div>
       </div>
 

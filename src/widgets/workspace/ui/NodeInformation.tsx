@@ -11,6 +11,7 @@ import DeleteNodeTroubleshootingButton from '@/features/roadmap/deleteNodeTroubl
 import { useSession } from 'next-auth/react'
 import useTechRecommendation from '@/features/ai/model/useTechRecommendation'
 import TechRecommendationList from '@/features/tech/ui/TechRecommendationList'
+import useAddChildNode from '../model/useAddChildNode'
 
 interface NodeInformationProps {
   selectedNode: CustomNodeType
@@ -43,10 +44,11 @@ const NodeInformation = ({
     useState<boolean>(false)
   const troubleshootings = getNodeTroubleshootings(selectedNode.data.techId)
 
-  // 추천 모드 상태 추가
   const [isRecommendMode, setIsRecommendMode] = useState<boolean>(false)
 
-  // AI 추천 훅
+  // 자식 노드 추가 훅
+  const { addChildNode, resetCounter } = useAddChildNode(selectedNode)
+
   const {
     recommendationData,
     recommendationIsLoading,
@@ -54,21 +56,18 @@ const NodeInformation = ({
     fetchRecommendations,
   } = useTechRecommendation()
 
-  // 추천 버튼 클릭 핸들러
   const handleRecommendClick = () => {
     const techName = selectedNode.data.label
     if (!techName) return
-
-    setIsRecommendMode(true) // 추천 모드 활성화
-    fetchRecommendations(techName) // AI 추천 요청
+    setIsRecommendMode(true)
+    resetCounter() // 추천 모드 진입 시 카운터 초기화
+    fetchRecommendations(techName)
   }
 
-  //  추천 모드에서 뒤로가기
   const handleBackToMenu = () => {
     setIsRecommendMode(false)
   }
 
-  // 노드 업데이트 (추천 결과에서 선택 시)
   const handleUpdateNode = (techItem: any) => {
     if (selectedNode === null) return
     setNodes((nds) =>
@@ -98,7 +97,6 @@ const NodeInformation = ({
     })
   }
 
-  // New 버튼 클릭 핸들러
   const handleNewTech = (item: any) => {
     const techName = item.name
     if (!techName) return
@@ -107,7 +105,6 @@ const NodeInformation = ({
 
   return (
     <div className="flex h-full w-full flex-col">
-      {/* 기술 이름 및 편집 버튼 */}
       <div className="flex items-center justify-between px-10 py-20">
         <div className="flex items-center gap-10">
           <img
@@ -122,20 +119,19 @@ const NodeInformation = ({
         </Button>
       </div>
 
-      {/* 하위 노드 추천 버튼 */}
       <div className="flex justify-center">
-        <Button
-          className="point-gradient px-20 py-10"
-          onClick={handleRecommendClick}
-        >
-          {selectedNode.data.label} 와(과) 연관된 하위 노드 추천받기
-        </Button>
+        {!isRecommendMode && (
+          <Button
+            className="point-gradient px-20 py-10"
+            onClick={handleRecommendClick}
+          >
+            {selectedNode.data.label} 와(과) 연관된 하위 노드 추천받기
+          </Button>
+        )}
       </div>
 
-      {/* 추천 모드일 때 */}
       {isRecommendMode ? (
         <div className="h-full overflow-y-auto p-10">
-          {/* 뒤로가기 버튼 */}
           <Button
             variant="secondary"
             className="mb-10 w-full py-10"
@@ -144,19 +140,16 @@ const NodeInformation = ({
             ← 돌아가기
           </Button>
 
-          {/* 제목 */}
           <h3 className="text-foreground mb-10 font-semibold">
             💡 &apos;{selectedNode.data.label}&apos;와 시너지가 좋은 기술
           </h3>
 
-          {/* 에러 표시 */}
           {recommendationError && (
             <div className="rounded-lg bg-red-50 p-12 text-red-600">
               추천 에러 발생: {recommendationError}
             </div>
           )}
 
-          {/* 추천 결과 목록 */}
           <TechRecommendationList
             data={recommendationData?.data ?? []}
             isLoading={recommendationIsLoading}
@@ -168,12 +161,11 @@ const NodeInformation = ({
             onComplete={() => {}}
             handleUpdateNode={handleUpdateNode}
             onNew={handleNewTech}
+            onAddNode={addChildNode} // 훅에서 가져온 함수 사용
           />
         </div>
       ) : (
         <>
-          {/* 기존 메뉴 (추천 모드 아닐 때만 표시) */}
-          {/* navigation */}
           <div className="border-b-secondary border-b">
             <ul className="flex">
               {NodeInformationMenu.map((item) => (
@@ -190,12 +182,10 @@ const NodeInformation = ({
 
           {isLogin ? (
             <div className="h-full overflow-y-auto p-10">
-              {/* 메모 탭 */}
               {mode === 'memo' && (
                 <MemoForm techId={selectedNode.data.techId} />
               )}
 
-              {/* 자료 탭 */}
               {mode === 'link' && (
                 <>
                   {!isLinkFormOpen ? (
@@ -245,7 +235,6 @@ const NodeInformation = ({
                 </>
               )}
 
-              {/* 트러블슈팅 탭 */}
               {mode === 'troubleshooting' && (
                 <>
                   {!isTroubleshootingFormOpen ? (

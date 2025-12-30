@@ -18,8 +18,7 @@ const DeleteWorkspaceModal = ({
 }: DeleteWorkspaceModalProps) => {
   const router = useRouter()
   const { deleteWorkspace, isSaving } = useDeleteWorkspace()
-  const { workspaceId: currentWorkspaceId, setWorkspaceId } =
-    useWorkspaceStore()
+  const { workspaceId: currentWorkspaceId, resetToEmpty } = useWorkspaceStore()
 
   const handleDelete = () => {
     deleteWorkspace(workspaceId, {
@@ -28,7 +27,7 @@ const DeleteWorkspaceModal = ({
 
         // 현재 보고 있는 워크스페이스를 삭제했을 경우
         if (currentWorkspaceId === data.workspaceId) {
-          setWorkspaceId(null)
+          resetToEmpty()
           router.push('/')
         }
       },

@@ -24,21 +24,32 @@ export async function PATCH(
     }
 
     // 워크스페이스 소유자 확인
-    const { data: existingWorkspace, error: checkError } = await supabase
+    const { data: workspace, error: workspaceError } = await supabase
       .from('workspaces')
-      .select('user_id')
+      .select('workspace_id, roadmap_id')
       .eq('workspace_id', workspaceId)
-      .single()
+      .eq('status', true)
+      .maybeSingle()
 
-    if (checkError || !existingWorkspace) {
+    if (workspaceError || !workspace) {
       return NextResponse.json(
         { error: 'Workspace not found' },
         { status: 404 }
       )
     }
 
-    if (existingWorkspace.user_id !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const { data: roadmap, error: roadmapError } = await supabase
+      .from('roadmaps')
+      .select('roadmap_id, user_id')
+      .eq('roadmap_id', workspace.roadmap_id)
+      .eq('status', true)
+      .maybeSingle()
+
+    if (roadmapError || !roadmap || roadmap.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Roadmap not found or access denied' },
+        { status: 403 }
+      )
     }
 
     // 업데이트

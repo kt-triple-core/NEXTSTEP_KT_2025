@@ -19,24 +19,40 @@ export async function GET(
     const { userId } = await requireUser()
     const { workspaceId } = await params
 
-    // 워크스페이스 조회
-    const { data: workspace, error } = await supabase
+    // 1. workspace 조회
+    const { data: workspace, error: workspaceError } = await supabase
       .from('workspaces')
-      .select('*')
+      .select('workspace_id, roadmap_id, title, updated_at')
       .eq('workspace_id', workspaceId)
-      .eq('user_id', userId)
       .eq('status', true)
       .maybeSingle()
 
-    if (error || !workspace) {
+    if (workspaceError || !workspace) {
       return NextResponse.json(
         { error: 'Workspace not found' },
         { status: 404 }
       )
     }
 
+    // 2. roadmap 조회(실제 데이터)
+    const { data: roadmap, error: roadmapError } = await supabase
+      .from('roadmaps')
+      .select('roadmap_id, user_id, nodes, edges')
+      .eq('roadmap_id', workspace.roadmap_id)
+      .eq('status', true)
+      .maybeSingle()
+
+    if (roadmapError || !roadmap || roadmap.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Roadmap not found or access denied' },
+        { status: 403 }
+      )
+    }
+
+    const roadmapId = roadmap.roadmap_id
+
     // techId 추출
-    const techIds = (workspace.nodes ?? [])
+    const techIds = (roadmap.nodes ?? [])
       .map((node: any) => node.data?.techId)
       .filter((id: string) => id && id !== 'start')
 
@@ -47,8 +63,8 @@ export async function GET(
         content: {
           workspaceId: workspace.workspace_id,
           title: workspace.title,
-          nodes: workspace.nodes,
-          edges: workspace.edges,
+          nodes: roadmap.nodes,
+          edges: roadmap.edges,
           memos: [],
           links: [],
           troubleshootings: [],
@@ -63,23 +79,23 @@ export async function GET(
         supabase
           .from('node_memos')
           .select('*')
-          .eq('user_id', userId)
           .eq('status', true)
-          .in('tech_id', techIds),
+          .in('tech_id', techIds)
+          .in('roadmap_id', [roadmapId]),
 
         supabase
           .from('node_links')
           .select('*')
-          .eq('user_id', userId)
           .eq('status', true)
-          .in('tech_id', techIds),
+          .in('tech_id', techIds)
+          .in('roadmap_id', [roadmapId]),
 
         supabase
           .from('node_troubleshootings')
           .select('*')
-          .eq('user_id', userId)
           .eq('status', true)
-          .in('tech_id', techIds),
+          .in('tech_id', techIds)
+          .in('roadmap_id', [roadmapId]),
       ])
 
     const sanitizedMemos = Object.fromEntries(
@@ -146,8 +162,8 @@ export async function GET(
       content: {
         workspaceId: workspace.workspace_id,
         title: workspace.title,
-        nodes: workspace.nodes,
-        edges: workspace.edges,
+        nodes: roadmap.nodes,
+        edges: roadmap.edges,
         memos: sanitizedMemos,
         links: sanitizedLinks,
         troubleshootings: sanitizedTroubleshootings,
@@ -171,7 +187,7 @@ export async function PUT(
     const { userId } = await requireUser()
     const { workspaceId } = await params
     const body = await req.json()
-    const { title, nodes, edges } = body
+    const { title, nodes, edges, snapshot } = body
 
     // 입력 검증
     if (!workspaceId) {
@@ -185,54 +201,248 @@ export async function PUT(
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
     }
 
-    // 워크스페이스 소유자 확인
-    const { data: existingWorkspace, error: checkError } = await supabase
-      .from('workspaces')
-      .select('user_id')
-      .eq('workspace_id', workspaceId)
-      .single()
+    // 1. workspace + roadmap 조회
+    type WorkspaceWithRoadmap = {
+      workspace_id: string
+      title: string
+      roadmap_id: string
+      updated_at: string
+      roadmap: {
+        roadmap_id: string
+        user_id: string
+        visibility: 'private' | 'public'
+      }
+    }
 
-    if (checkError || !existingWorkspace) {
+    const { data: workspace, error: workspaceError } = await supabase
+      .from('workspaces')
+      .select(
+        `
+      workspace_id,
+      title,
+      roadmap_id,
+      updated_at,
+      roadmap:roadmaps!inner (
+        roadmap_id,
+        user_id,
+        visibility
+      )
+    `
+      )
+      .eq('workspace_id', workspaceId)
+      .eq('status', true)
+      .maybeSingle<WorkspaceWithRoadmap>()
+
+    if (workspaceError || !workspace) {
       return NextResponse.json(
         { error: 'Workspace not found' },
         { status: 404 }
       )
     }
 
-    if (existingWorkspace.user_id !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    // 2. roadmap 추출
+    if (
+      !workspace.roadmap ||
+      workspace.roadmap.user_id !== userId ||
+      workspace.roadmap.visibility !== 'private'
+    ) {
+      return NextResponse.json(
+        { error: 'Workspace not found or access denied' },
+        { status: 403 }
+      )
     }
 
-    // 업데이트
-    const { data, error } = await supabase
-      .from('workspaces')
+    const roadmapId = workspace.roadmap.roadmap_id
+
+    // 3. 업데이트
+    const { error: roadmapUpdateError } = await supabase
+      .from('roadmaps')
       .update({
-        title: title.trim(),
         nodes: nodes || [],
         edges: edges || [],
         updated_at: new Date().toISOString(),
       })
-      .eq('workspace_id', workspaceId)
-      .select()
-      .single()
+      .eq('roadmap_id', roadmapId)
 
-    if (error) {
-      console.error('Supabase error:', error)
+    if (roadmapUpdateError) {
       return NextResponse.json(
-        {
-          error: 'Failed to update workspace',
-          details: error.message,
-        },
+        { error: 'Failed to update roadmap' },
         { status: 500 }
       )
+    }
+    const { error: workspaceUpdateError } = await supabase
+      .from('workspaces')
+      .update({
+        title: title.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('workspace_id', workspaceId)
+
+    if (workspaceUpdateError) {
+      return NextResponse.json(
+        { error: 'Failed to update workspace' },
+        { status: 500 }
+      )
+    }
+
+    // 4. 기존 link, troubleshooting 조회
+    const [{ data: linkData }, { data: troubleshootingData }] =
+      await Promise.all([
+        supabase
+          .from('node_links')
+          .select('*')
+          .eq('roadmap_id', roadmapId)
+          .eq('status', true),
+
+        supabase
+          .from('node_troubleshootings')
+          .select('*')
+          .eq('roadmap_id', roadmapId)
+          .eq('status', true),
+      ])
+
+    const existingLinks = linkData ?? []
+    const existingTroubleshootings = troubleshootingData ?? []
+
+    // 5. memo 저장
+    // 5-1. memo 덮어쓰기
+    if (snapshot.memos && Object.keys(snapshot.memos).length > 0) {
+      const memosToInsert: any[] = []
+      const memosToUpdate: any[] = []
+
+      Object.entries(snapshot.memos).forEach(
+        ([techId, memo]: [string, any]) => {
+          if (memo.nodeMemoId) {
+            // 기존 row 업데이트
+            memosToUpdate.push({
+              node_memo_id: memo.nodeMemoId,
+              memo: memo.memo,
+            })
+          } else {
+            // 새로 삽입
+            memosToInsert.push({
+              user_id: userId,
+              tech_id: techId,
+              roadmap_id: roadmapId,
+              memo: memo.memo,
+            })
+          }
+        }
+      )
+
+      // insert
+      if (memosToInsert.length > 0) {
+        await supabase.from('node_memos').insert(memosToInsert)
+      }
+
+      // update
+      for (const memo of memosToUpdate) {
+        await supabase
+          .from('node_memos')
+          .update({ memo: memo.memo })
+          .eq('node_memo_id', memo.node_memo_id)
+      }
+    }
+
+    // 6. link 저장
+    // 6-1. 기존 데이터 매핑
+    const existingLinkIds = new Set(existingLinks.map((l) => l.node_link_id))
+
+    // 6-2. diff 탐색
+    const snapshotLinkIds = new Set<string>()
+    const linksToInsert: any[] = []
+
+    Object.entries(
+      snapshot.links as Record<
+        string,
+        { nodeLinkId?: string; title: string; url: string }[]
+      >
+    ).forEach(([techId, links]) => {
+      links.forEach((link) => {
+        if (link.nodeLinkId && existingLinkIds.has(link.nodeLinkId)) {
+          snapshotLinkIds.add(link.nodeLinkId)
+        } else {
+          linksToInsert.push({
+            user_id: userId,
+            roadmap_id: roadmapId,
+            tech_id: techId,
+            title: link.title,
+            url: link.url,
+          })
+        }
+      })
+    })
+
+    const linkIdsToDelete = [...existingLinkIds].filter(
+      (id) => !snapshotLinkIds.has(id)
+    )
+
+    // 6-3. DB 반영
+    if (linkIdsToDelete.length > 0) {
+      await supabase
+        .from('node_links')
+        .delete()
+        .in('node_link_id', linkIdsToDelete)
+    }
+
+    if (linksToInsert.length > 0) {
+      await supabase.from('node_links').insert(linksToInsert)
+    }
+
+    // 7. troubleshooting 저장
+    // 7-1. 기존 데이터 매핑
+    const existingTroubleIds = new Set(
+      existingTroubleshootings.map((t) => t.node_troubleshooting_id)
+    )
+
+    // 7-2. diff 탐색
+    const snapshotTroubleIds = new Set<string>()
+    const troublesToInsert: any[] = []
+
+    Object.entries(
+      snapshot.troubleshootings as Record<
+        string,
+        { nodeTroubleshootingId?: string; troubleshooting: string }[]
+      >
+    ).forEach(([techId, troubles]) => {
+      troubles.forEach((t) => {
+        if (
+          t.nodeTroubleshootingId &&
+          existingTroubleIds.has(t.nodeTroubleshootingId)
+        ) {
+          snapshotTroubleIds.add(t.nodeTroubleshootingId)
+        } else {
+          troublesToInsert.push({
+            user_id: userId,
+            roadmap_id: roadmapId,
+            tech_id: techId,
+            troubleshooting: t.troubleshooting,
+          })
+        }
+      })
+    })
+    const troubleIdsToDelete = [...existingTroubleIds].filter(
+      (id) => !snapshotTroubleIds.has(id)
+    )
+
+    // 7-3. DB 반영
+    if (troubleIdsToDelete.length > 0) {
+      await supabase
+        .from('node_troubleshootings')
+        .delete()
+        .in('node_troubleshooting_id', troubleIdsToDelete)
+    }
+
+    if (troublesToInsert.length > 0) {
+      await supabase.from('node_troubleshootings').insert(troublesToInsert)
     }
 
     return NextResponse.json({
       success: true,
       content: {
-        workspace_id: data.id,
-        title: data.title,
-        updatedAt: data.updated_at,
+        workspace_id: workspace.workspace_id,
+        title: workspace.title,
+        updatedAt: workspace.updated_at,
       },
     })
   } catch (error) {
@@ -261,40 +471,73 @@ export async function DELETE(
     }
 
     // 워크스페이스 소유자 확인
-    const { data: existingWorkspace, error: checkError } = await supabase
+    const { data: workspace, error: workspaceError } = await supabase
       .from('workspaces')
-      .select('user_id')
+      .select('workspace_id, roadmap_id')
       .eq('workspace_id', workspaceId)
-      .single()
+      .eq('status', true)
+      .maybeSingle()
 
-    if (checkError || !existingWorkspace) {
+    if (workspaceError || !workspace) {
       return NextResponse.json(
         { error: 'Workspace not found' },
         { status: 404 }
       )
     }
 
-    if (existingWorkspace.user_id !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const { data: roadmap, error: roadmapError } = await supabase
+      .from('roadmaps')
+      .select('roadmap_id, user_id')
+      .eq('roadmap_id', workspace.roadmap_id)
+      .eq('status', true)
+      .maybeSingle()
+
+    if (roadmapError || !roadmap || roadmap.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Roadmap not found or access denied' },
+        { status: 403 }
+      )
     }
 
     // soft delete
-    const { data, error } = await supabase
-      .from('workspaces')
+    const { data: deletedRoadmap, error: deleteRoadmapError } = await supabase
+      .from('roadmaps')
       .update({
         status: false,
         updated_at: new Date().toISOString(),
       })
-      .eq('workspace_id', workspaceId)
+      .eq('roadmap_id', roadmap.roadmap_id)
       .select()
       .single()
 
-    if (error) {
-      console.error('Supabase error:', error)
+    if (deleteRoadmapError || !deletedRoadmap) {
+      console.error('Supabase error:', deleteRoadmapError)
+      return NextResponse.json(
+        {
+          error: 'Failed to delete roadmap',
+          details: deleteRoadmapError?.message,
+        },
+        { status: 500 }
+      )
+    }
+
+    const { data: deletedWorkspace, error: deleteWorkspaceError } =
+      await supabase
+        .from('workspaces')
+        .update({
+          status: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('workspace_id', workspace.workspace_id)
+        .select()
+        .single()
+
+    if (deleteWorkspaceError || !deletedWorkspace) {
+      console.error('Supabase error:', deleteWorkspaceError)
       return NextResponse.json(
         {
           error: 'Failed to delete workspace',
-          details: error.message,
+          details: deleteWorkspaceError?.message,
         },
         { status: 500 }
       )
@@ -303,7 +546,7 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
       content: {
-        workspaceId: data.workspace_id,
+        workspaceId: workspace.workspace_id,
       },
     })
   } catch (error) {

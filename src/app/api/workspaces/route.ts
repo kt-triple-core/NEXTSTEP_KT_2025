@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
 import { requireUser } from '@/shared/libs/requireUser'
 
+// 1. roadmaps INSERT (nodes, edges)
+// 2. workspaces INSERT (roadmap_id, title)
+// 3. node_* INSERT (roadmap_id 기준)
 export const POST = async (req: NextRequest) => {
   try {
     const { userId } = await requireUser()
@@ -13,43 +16,56 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
     }
 
-    // 1. 워크스페이스 Supabase에 저장
+    // 1. 로드맵 저장
+    const { data: roadmap, error: roadmapError } = await supabase
+      .from('roadmaps')
+      .insert({
+        user_id: userId,
+        nodes: nodes || [],
+        edges: edges || [],
+        visibility: 'private',
+      })
+      .select('roadmap_id')
+      .single()
+
+    if (roadmapError) {
+      return NextResponse.json(
+        { error: 'Failed to create roadmap' },
+        { status: 500 }
+      )
+    }
+
+    const roadmapId = roadmap.roadmap_id
+
+    // 2. 워크스페이스 저장
     const { data: workspace, error: workspaceError } = await supabase
       .from('workspaces')
       .insert({
-        user_id: userId,
+        roadmap_id: roadmapId,
         title: title.trim(),
-        nodes: nodes || [],
-        edges: edges || [],
       })
       .select()
       .single()
 
     if (workspaceError) {
-      console.error('Supabase error:', workspaceError)
       return NextResponse.json(
-        {
-          error: 'Failed to create workspace',
-          details: workspaceError.message,
-        },
+        { error: 'Failed to create workspace' },
         { status: 500 }
       )
     }
 
-    const workspaceId = workspace.workspace_id
-
-    // 2. 메모 저장
+    // 3-1. 메모 저장
     if (snapshot.memos && Object.keys(snapshot.memos).length > 0) {
-      // 모든 노드에 대한 메모 정보(user_id, workspace_id, tech_id, memo)를 배열 형태로 생성
+      // 모든 노드에 대한 메모 정보(user_id, roadmap_id, tech_id, memo)를 배열 형태로 생성
       // [
-      //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', memo: 'xx'},
-      //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', memo: 'yy'}
+      //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', memo: 'xx'},
+      //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', memo: 'yy'}
       // ]
       const memosToInsert = Object.entries(snapshot.memos).map(
         ([techId, memo]: [string, any]) => ({
           user_id: userId,
           tech_id: techId,
-          workspace_id: workspaceId,
+          roadmap_id: roadmapId,
           memo: memo.memo,
         })
       )
@@ -70,11 +86,11 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // 3. 자료 저장
-    // 모든 노드에 대한 자료 정보(user_id, workspace_id, tech_id, title, url)를 배열 형태로 생성
+    // 3-2. 자료 저장
+    // 모든 노드에 대한 자료 정보(user_id, roadmap_id, tech_id, title, url)를 배열 형태로 생성
     // [
-    //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', title: 'xx', url: 'xx'},
-    //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', title: 'yy', url: 'yy'}
+    //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', title: 'xx', url: 'xx'},
+    //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', title: 'yy', url: 'yy'}
     // ]
     const linksToInsert: any[] = []
     Object.entries(snapshot.links || {}).forEach(
@@ -83,7 +99,7 @@ export const POST = async (req: NextRequest) => {
           linksToInsert.push({
             user_id: userId,
             tech_id: techId,
-            workspace_id: workspaceId,
+            roadmap_id: roadmapId,
             title: link.title,
             url: link.url,
           })
@@ -108,11 +124,11 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // 4. 트러블슈팅 저장
-    // 모든 노드에 대한 트러블슈팅 정보(user_id, workspace_id, tech_id, troubleshooting)를 배열 형태로 생성
+    // 3-3. 트러블슈팅 저장
+    // 모든 노드에 대한 트러블슈팅 정보(user_id, roadmap_id, tech_id, troubleshooting)를 배열 형태로 생성
     // [
-    //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', troubleshooting: 'xx'},
-    //   {user_id: 'xx', tech_id: 'xx', workspace_id: 'xx', troubleshooting: 'yy'}
+    //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', troubleshooting: 'xx'},
+    //   {user_id: 'xx', tech_id: 'xx', roadmap_id: 'xx', troubleshooting: 'yy'}
     // ]
     const troubleshootingsToInsert: any[] = []
     Object.entries(snapshot.troubleshootings || {}).forEach(
@@ -121,7 +137,7 @@ export const POST = async (req: NextRequest) => {
           troubleshootingsToInsert.push({
             user_id: userId,
             tech_id: techId,
-            workspace_id: workspaceId,
+            roadmap_id: roadmapId,
             troubleshooting: t.troubleshooting,
           })
         })
@@ -148,7 +164,7 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({
       success: true,
       content: {
-        workspaceId,
+        workspaceId: workspace.workspace_id,
         title: workspace.title,
         createdAt: workspace.created_at,
       },

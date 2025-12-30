@@ -23,7 +23,7 @@ const NotFound = () => {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 md:text-3xl">
+        <h2 className="color-foreground mb-20 text-2xl font-bold md:text-3xl">
           길을 잃으신 것 같아요!
         </h2>
         <p className="max-w-md text-gray-500">

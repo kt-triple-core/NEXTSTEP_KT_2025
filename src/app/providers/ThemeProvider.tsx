@@ -2,23 +2,16 @@
 
 import { useEffect } from 'react'
 import { useThemeStore } from '@/features/theme/model'
-import { getStoredTheme } from '@/features/theme/lib'
 
-export default function ThemeProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const { setTheme, theme } = useThemeStore()
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const theme = useThemeStore((s) => s.theme)
 
   useEffect(() => {
-    const stored = getStoredTheme()
-    setTheme(stored)
-  }, [setTheme])
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    const root = document.documentElement
+    root.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
   return <>{children}</>
 }
+
+export default ThemeProvider

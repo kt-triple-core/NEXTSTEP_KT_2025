@@ -2,8 +2,8 @@
 
 import { ReactFlow, Background, BackgroundVariant } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import ProfileAvatar from '@/shared/ui/profile/ProfileAvatar'
 import { useThemeStore } from '@/features/theme/model'
+import MyProfileAvatar from '@/features/profile/ui/MyProfileAvatar'
 
 type CommunityCardProps = {
   title?: string
@@ -57,7 +57,12 @@ const CommunityCard = ({
       {/* 하단 영역 */}
       <div className="bg-primary flex items-center gap-12 px-4 py-14">
         <div className="bg-accent flex h-30 w-30 items-center justify-center rounded-2xl">
-          <ProfileAvatar name={userName} image={userImage} size={30} />
+          <MyProfileAvatar
+            size={30}
+            fallbackName={userName}
+            fallbackImage={userImage}
+            className="h-full"
+          />
         </div>
 
         {title && (
