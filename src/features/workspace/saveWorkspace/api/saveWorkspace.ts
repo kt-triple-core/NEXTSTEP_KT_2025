@@ -1,5 +1,8 @@
 import { api } from '@/shared/libs/axios'
-import { CustomNodeType } from '@/widgets/workspace/model/types'
+import {
+  CustomNodeType,
+  WorkspaceSnapshot,
+} from '@/widgets/workspace/model/types'
 import { Edge } from '@xyflow/react'
 
 interface saveWorkspaceParams {
@@ -7,6 +10,7 @@ interface saveWorkspaceParams {
   title: string
   nodes: CustomNodeType[]
   edges: Edge[]
+  snapshot: WorkspaceSnapshot
 }
 
 const saveWorkspace = async (params: saveWorkspaceParams) => {
