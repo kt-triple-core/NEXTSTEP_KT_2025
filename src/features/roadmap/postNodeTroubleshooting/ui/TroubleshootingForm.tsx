@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { usePostNodeTroubleshooting } from '../model'
-import { toast } from 'sonner'
 import { Button } from '@/shared/ui'
 import { useWorkspaceStore } from '@/widgets/workspace/model'
+import { v4 as uuidv4 } from 'uuid'
+import { toast } from 'sonner'
 
 interface TroubleshootingFormProps {
   techId: string | null
@@ -13,46 +13,31 @@ interface TroubleshootingFormProps {
 const TroubleshootingForm = ({
   techId,
   handleCloseForm,
-  troubleshootings,
 }: TroubleshootingFormProps) => {
   const [troubleshooting, setTroubleshooting] = useState<string>('')
-  const setNodeTroubleshootings = useWorkspaceStore(
-    (s) => s.setNodeTroubleshootings
+  const addNodeTroubleshooting = useWorkspaceStore(
+    (s) => s.addNodeTroubleshooting
   )
 
-  const initForm = () => {
+  if (!techId) return null
+
+  const handleAdd = () => {
+    if (!troubleshooting.trim()) {
+      toast.error('트러블슈팅 내용을 입력하세요.')
+      return
+    }
+
+    addNodeTroubleshooting(techId, {
+      nodeTroubleshootingId: uuidv4(), // 임시 ID
+      troubleshooting: troubleshooting.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    toast.success('트러블슈팅이 추가되었습니다.')
+
     setTroubleshooting('')
     handleCloseForm()
-  }
-
-  const { postNodeTroubleshooting, isSaving } = usePostNodeTroubleshooting()
-  const handleAdd = () => {
-    if (!techId) return
-    postNodeTroubleshooting(
-      { techId, troubleshooting },
-      {
-        onSuccess: (data) => {
-          setNodeTroubleshootings(techId, [
-            {
-              nodeTroubleshootingId: data.nodeTroubleshootingId,
-              troubleshooting: data.troubleshooting,
-              createdAt: data.createdAt,
-            },
-            ...troubleshootings,
-          ])
-          toast.success('자료가 추가되었습니다.')
-          initForm()
-        },
-        onError: (err) => {
-          console.log(err)
-          toast.error(
-            err instanceof Error
-              ? err.message
-              : '트러블슈팅 추가 중 오류가 발생했습니다.'
-          )
-        },
-      }
-    )
   }
 
   return (
@@ -64,16 +49,15 @@ const TroubleshootingForm = ({
         className="bg-background h-full w-full resize-none rounded-md p-10 outline-none"
       />
       <div className="mt-5 flex gap-5">
-        <Button className="w-[calc(50%-2.5px)] py-8" onClick={initForm}>
+        <Button className="w-[calc(50%-2.5px)] py-8" onClick={handleCloseForm}>
           취소
         </Button>
         <Button
           variant="accent"
           className="w-[calc(50%-2.5px)] py-8"
           onClick={handleAdd}
-          disabled={isSaving}
         >
-          {isSaving ? '추가 중...' : '추가'}
+          추가
         </Button>
       </div>
     </div>

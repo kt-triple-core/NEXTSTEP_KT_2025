@@ -7,13 +7,13 @@ const CustomNode = ({ data }: { data: CustomNodeDataType }) => {
   const techId = data.techId
 
   const hasMemo = useWorkspaceStore(
-    (s) => !!techId && !!s.nodeMemos[techId] && s.nodeMemos[techId].memo !== ''
+    (s) => !!techId && !!s.current.memos[techId]?.memo
   )
   const hasLink = useWorkspaceStore(
-    (s) => !!techId && (s.nodeLinks[techId]?.length ?? 0) > 0
+    (s) => !!techId && (s.current.links[techId]?.length ?? 0) > 0
   )
   const hasTroubleshooting = useWorkspaceStore(
-    (s) => !!techId && (s.nodeTroubleshootings[techId]?.length ?? 0) > 0
+    (s) => !!techId && (s.current.troubleshootings[techId]?.length ?? 0) > 0
   )
   return (
     <div>

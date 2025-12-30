@@ -27,6 +27,12 @@ export type WorkspaceListItem = {
   updatedAt: string
 }
 
+export type WorkspaceSnapshot = {
+  memos: Record<string, NodeMemo>
+  links: Record<string, NodeLink[]>
+  troubleshootings: Record<string, NodeTroubleshooting[]>
+}
+
 export type NodeMemo = {
   memo: string
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { usePostNodeLink } from '../model'
-import { toast } from 'sonner'
 import { Button } from '@/shared/ui'
 import { useWorkspaceStore } from '@/widgets/workspace/model'
+import { v4 as uuidv4 } from 'uuid'
+import { toast } from 'sonner'
 
 interface LinkFormProps {
   techId: string | null
@@ -10,45 +10,40 @@ interface LinkFormProps {
   links: any[]
 }
 
-const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
+const LinkForm = ({ techId, handleCloseForm }: LinkFormProps) => {
   const [title, setTitle] = useState<string>('')
   const [url, setUrl] = useState<string>('')
-  const setNodeLinks = useWorkspaceStore((s) => s.setNodeLinks)
+  const addNodeLink = useWorkspaceStore((s) => s.addNodeLink)
 
-  const initForm = () => {
+  if (!techId) return null
+
+  const handleAdd = () => {
+    if (!title.trim()) {
+      toast.error('자료 이름을 입력하세요.')
+      return
+    }
+    if (!url.trim()) {
+      toast.error('URL을 입력하세요.')
+      return
+    }
+    if (!url.startsWith('https://')) {
+      toast.error('URL은 https://로 시작해야 합니다.')
+      return
+    }
+
+    addNodeLink(techId, {
+      nodeLinkId: uuidv4(), // 임시 ID
+      title: title.trim(),
+      url: url.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    toast.success('자료가 추가되었습니다.')
+
     setTitle('')
     setUrl('')
     handleCloseForm()
-  }
-
-  const { postNodeLink, isSaving } = usePostNodeLink()
-  const handleAdd = () => {
-    if (!techId) return
-    postNodeLink(
-      { techId, title, url },
-      {
-        onSuccess: (data) => {
-          setNodeLinks(techId, [
-            {
-              nodeLinkId: data.nodeLinkId,
-              title: data.title,
-              url: data.url,
-            },
-            ...links,
-          ])
-          toast.success('자료가 추가되었습니다.')
-          initForm()
-        },
-        onError: (err) => {
-          console.log(err)
-          toast.error(
-            err instanceof Error
-              ? err.message
-              : '자료 추가 중 오류가 발생했습니다.'
-          )
-        },
-      }
-    )
   }
 
   return (
@@ -66,16 +61,11 @@ const LinkForm = ({ techId, handleCloseForm, links }: LinkFormProps) => {
         className="bg-secondary mt-5 w-full rounded-md px-10 py-8 outline-none"
       />
       <div className="mt-5 flex justify-end gap-5">
-        <Button className="px-20 py-8" onClick={initForm}>
+        <Button className="px-20 py-8" onClick={handleCloseForm}>
           취소
         </Button>
-        <Button
-          variant="accent"
-          className="px-20 py-8"
-          onClick={handleAdd}
-          disabled={isSaving}
-        >
-          {isSaving ? '추가 중...' : '추가'}
+        <Button variant="accent" className="px-20 py-8" onClick={handleAdd}>
+          추가
         </Button>
       </div>
     </>
