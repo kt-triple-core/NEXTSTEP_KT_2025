@@ -4,9 +4,13 @@ import { requireUser } from '@/shared/libs/requireUser'
 import { createWorkspace, updateWorkspace } from '@/shared/libs/workspaceLib'
 import { cloneRoadmapAsPublic } from '@/shared/libs/roadmapLib'
 import type { PostWithRoadmap } from '@/features/community/model/types'
-import { buildUserDecorationMap } from '@/shared/libs/communityUserMap'
 
+// ✅ 공용 유틸 (decorations + experience까지 필요하면 이걸)
+import { buildUserProfileMap } from '@/shared/libs/communityUserMap'
+
+// ================================
 // 커뮤니티 카드 목록 조회
+// ================================
 export const GET = async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url)
@@ -18,6 +22,7 @@ export const GET = async (req: NextRequest) => {
         `
           post_id,
           title,
+          content,
           like_count,
           roadmap_id,
           created_at,
@@ -49,8 +54,11 @@ export const GET = async (req: NextRequest) => {
       new Set(safePosts.map((p) => p.roadmap?.user_id).filter(Boolean))
     ) as string[]
 
-    // 2) 작성자 정보 + decorations 조합 (공통 유틸)
-    const authorMap = await buildUserDecorationMap(userIds, {
+    // 2) authorMap 만들기 (decorations + experience까지)
+    //    - experience가 "배열"이어야 하면 유틸 수정 필요.
+    //    - 현재 유틸은 experience: {field, year} | null 형태
+    const authorMap = await buildUserProfileMap(userIds, {
+      includeExperience: true,
       borderScale: 0.6,
       accessoryScale: 0.7,
     })
@@ -58,6 +66,7 @@ export const GET = async (req: NextRequest) => {
     // 3) posts에 author 붙여서 반환
     const result = safePosts.map((p) => {
       const authorId = p.roadmap?.user_id ?? null
+
       return {
         ...p,
         authorId,
@@ -75,6 +84,9 @@ export const GET = async (req: NextRequest) => {
   }
 }
 
+// ================================
+// 게시글 작성
+// ================================
 export const POST = async (req: NextRequest) => {
   try {
     const { userId } = await requireUser()
@@ -82,12 +94,9 @@ export const POST = async (req: NextRequest) => {
     const { workspaceId, content, listId } = body
 
     // 1) workspace, roadmap, node 정보 저장
-    let result
-    if (workspaceId) {
-      result = await updateWorkspace(userId, workspaceId, body)
-    } else {
-      result = await createWorkspace(userId, body)
-    }
+    const result = workspaceId
+      ? await updateWorkspace(userId, workspaceId, body)
+      : await createWorkspace(userId, body)
 
     // 2) public roadmap 복제
     const publicRoadmapId = await cloneRoadmapAsPublic(userId, result.roadmapId)
