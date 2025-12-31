@@ -109,7 +109,7 @@ const SearchSidebar = ({
     searchError || (searchData && searchData.data?.length === 0)
   const errorMessage = searchError
     ? `검색 에러: ${searchError}`
-    : searchData?.message || '검색 결과가 없습니다'
+    : searchData?.message || '검색 결과가 없습니다. 관리자에게 요청해주세요.'
 
   // 노드 업데이트
   const handleUpdateNode = (techItem: TechItem) => {

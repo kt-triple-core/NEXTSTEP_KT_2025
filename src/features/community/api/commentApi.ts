@@ -1,4 +1,4 @@
-// [경로] features/community/model/api/commentApi.ts
+// features/community/model/api/commentApi.ts
 
 interface User {
   user_id: string
@@ -23,7 +23,7 @@ export interface Comment {
   replies?: Comment[]
 }
 
-export type CommentType = 'news' | 'post'
+export type CommentType = 'news' | 'community'
 
 interface CreateCommentDto {
   content: string
