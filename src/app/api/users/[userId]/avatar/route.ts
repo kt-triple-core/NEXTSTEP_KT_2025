@@ -1,29 +1,13 @@
-// app/api/users/[userId]/avatar/route.ts
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
-
-type AccessoryPosition = 'top' | 'bottom-left' | 'bottom-right'
-
-type AvatarDecoration = {
-  border?: {
-    source: string | null
-    style: string | null
-    scale?: number | null
-  } | null
-  accessories?: Partial<
-    Record<
-      AccessoryPosition,
-      { source: string | null; style: string | null; scale?: number | null }
-    >
-  >
-}
+import { AvatarDecoration } from '@/features/community/model/types'
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { userId: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId = params.userId
+    const { userId } = await params
 
     // 1) 유저 + 적용 상태만 가볍게 가져오기
     const { data: user, error: userErr } = await supabaseAdmin
@@ -91,21 +75,21 @@ export async function GET(
             ? {
                 source: acc.top.source ?? null,
                 style: acc.top.style ?? 'top',
-                scale: 0.5,
+                scale: 0.7,
               }
             : undefined,
           'bottom-left': acc['bottom-left']
             ? {
                 source: acc['bottom-left'].source ?? null,
                 style: acc['bottom-left'].style ?? 'bottom-left',
-                scale: 0.5,
+                scale: 0.7,
               }
             : undefined,
           'bottom-right': acc['bottom-right']
             ? {
                 source: acc['bottom-right'].source ?? null,
                 style: acc['bottom-right'].style ?? 'bottom-right',
-                scale: 0.5,
+                scale: 0.7,
               }
             : undefined,
         },

@@ -16,6 +16,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import axios from 'axios'
 import { useAppliedPurchasedItems } from '@/features/user/shop/model/useAppliedPurchasedItems'
+import { Button } from '@/shared/ui'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -247,7 +248,7 @@ const Profile = () => {
           <div className="h-30 rounded-t-md bg-gradient-to-r from-[#6e5aef] to-[#8840ec]" />
 
           <div className="p-60 px-80">
-            <section className="flex flex-col justify-between lg:flex-row">
+            <section className="flex flex-col justify-between gap-50">
               <h2 className="text-xl font-semibold">내 정보 수정</h2>
               <MyInfo />
             </section>
@@ -269,10 +270,13 @@ const Profile = () => {
                 />
               </div>
             </section>
+            <div className="mt-80 flex justify-end">
+              <Button className="text-16 font-light !text-[#ff0202] hover:underline">
+                회원탈퇴
+              </Button>
+            </div>
           </div>
         </div>
-
-        <div className="mt-4 text-right text-xs text-red-500">회원탈퇴</div>
       </section>
     </main>
   )

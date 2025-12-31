@@ -15,6 +15,7 @@ import CommunityCommentSection from '@/widgets/community/comments/CommunityComme
 import { exportWorkspaceAsImage } from '@/features/community/model/exportWorkspaceAsImage'
 import { PostWithRoadmap } from '@/features/community/model/types'
 import CustomNode from '@/widgets/workspace/ui/CustomNode'
+import UserAvatar from '@/features/profile/ui/UserAvatar'
 
 interface CommunityDetailProps {
   postId: string
@@ -235,16 +236,19 @@ export default function CommunityDetail({
           <div className="relative p-24">
             <div className="relative mb-20 flex items-center justify-between">
               <div className="flex items-center gap-10 text-sm">
-                <div className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-full">
-                  <img
-                    className="h-full w-full object-cover"
-                    src={post.users?.avatar}
-                    alt="profile"
+                <div className="flex h-40 w-40 items-center justify-center rounded-full">
+                  <UserAvatar
+                    userId={post.author?.user_id ?? null}
+                    size={40}
+                    className="h-40 w-40"
+                    fallbackName={post.author?.name ?? '익명'}
+                    fallbackImage={post.author?.avatar ?? null}
+                    decorations={post.author?.decorations ?? null}
                   />
                 </div>
-                <p>{post.users?.name ?? '익명'}</p>
+                <p>{post.author?.name ?? '익명'}</p>
                 <p className="text-foreground-light text-xs">
-                  {post.users?.experiences
+                  {post.author?.experiences
                     ?.map((exp) => `${exp.field} ${exp.year}년차`)
                     .join(', ')}
                 </p>

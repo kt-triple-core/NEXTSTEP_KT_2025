@@ -3,15 +3,17 @@
 import { ReactFlow, Background, BackgroundVariant } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useThemeStore } from '@/features/theme/model'
-import MyProfileAvatar from '@/features/profile/ui/MyProfileAvatar'
 import CustomNode from '@/widgets/workspace/ui/CustomNode'
+import UserAvatar from '@/features/profile/ui/UserAvatar'
 
 type CommunityCardProps = {
   title?: string
   nodes?: any[]
   edges?: any[]
+  authorId: string | null
   userName?: string | null
   userImage?: string | null
+  decorations?: any
   onClick?: () => void
 }
 
@@ -19,8 +21,10 @@ const CommunityCard = ({
   title,
   nodes = [],
   edges = [],
+  authorId,
   userName,
   userImage,
+  decorations,
   onClick,
 }: CommunityCardProps) => {
   const { theme } = useThemeStore()
@@ -95,11 +99,13 @@ const CommunityCard = ({
 
       {/* 하단 영역 */}
       <div className="bg-primary flex items-center gap-12 px-4 py-14">
-        <div className="bg-accent flex h-30 w-30 items-center justify-center rounded-2xl">
-          <MyProfileAvatar
+        <div className="flex h-30 w-30 items-center justify-center rounded-2xl">
+          <UserAvatar
+            userId={authorId}
             size={30}
             fallbackName={userName}
             fallbackImage={userImage}
+            decorations={decorations}
             className="h-full"
           />
         </div>

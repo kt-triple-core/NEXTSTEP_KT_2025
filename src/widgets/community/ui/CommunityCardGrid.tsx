@@ -60,14 +60,18 @@ const CommunityCardGrid = ({ listId }: CommunityCardGridProps) => {
 
   return (
     <div className="grid gap-150 md:grid-cols-2 xl:grid-cols-2">
-      {posts.map((post) => (
+      {posts
+        .filter((post) => post.author)
+        .map((post) => (
         <CommunityCard
           key={post.post_id}
           title={post.title}
           nodes={post.roadmap.nodes}
           edges={post.roadmap.edges}
-          userName={post.users?.name ?? null}
-          userImage={post.users?.avatar ?? null}
+          authorId={post.author?.user_id ?? null}
+          userName={post.author?.name ?? null}
+          userImage={post.author?.avatar ?? null}
+          decorations={post.author?.decorations ?? null}
           onClick={() => {
             router.push(`/community/${post.post_id}?list=${listId}`)
           }}

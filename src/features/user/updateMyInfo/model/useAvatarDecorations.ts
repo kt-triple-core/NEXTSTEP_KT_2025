@@ -29,7 +29,7 @@ export function useAvatarDecorations({
         ? {
             source: appliedItems.border.source,
             style: appliedItems.border.style,
-            scale: appliedItems.border.scale ?? 1.2,
+            scale: appliedItems.border.scale ?? 1,
           }
         : null,
 
@@ -38,7 +38,7 @@ export function useAvatarDecorations({
           ? {
               source: appliedItems.top.source,
               style: appliedItems.top.style ?? 'top',
-              scale: appliedItems.top.scale ?? 1,
+              scale: appliedItems.top.scale ?? 0.7,
             }
           : undefined,
 
@@ -46,7 +46,7 @@ export function useAvatarDecorations({
           ? {
               source: appliedItems.bottomLeft.source,
               style: appliedItems.bottomLeft.style ?? 'bottom-left',
-              scale: appliedItems.bottomLeft.scale ?? 1,
+              scale: appliedItems.bottomLeft.scale ?? 0.7,
             }
           : undefined,
 
@@ -54,7 +54,7 @@ export function useAvatarDecorations({
           ? {
               source: appliedItems.bottomRight.source,
               style: appliedItems.bottomRight.style ?? 'bottom-right',
-              scale: appliedItems.bottomRight.scale ?? 1,
+              scale: appliedItems.bottomRight.scale ?? 0.7,
             }
           : undefined,
       },

@@ -1,16 +1,17 @@
 // [경로] api/community/news/[id]/comments/route.ts
 import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 import { NextRequest, NextResponse } from 'next/server'
+import { buildUserProfileMap } from '@/shared/libs/communityUserMap'
 
 // 댓글 목록 조회
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: articleId } = await params
 
-    // 1단계: 댓글만 먼저 가져오기
+    // 1) 댓글 조회
     const { data: comments, error: commentsError } = await supabaseAdmin
       .from('comments')
       .select('*')
@@ -18,58 +19,28 @@ export async function GET(
       .eq('status', true)
       .order('created_at', { ascending: true })
 
-    if (commentsError) {
-      console.error('Comments error:', commentsError)
-      throw commentsError
-    }
+    if (commentsError) throw commentsError
 
-    console.log('Comments:', comments)
+    const safeComments = comments ?? []
+    if (safeComments.length === 0) return NextResponse.json([])
 
-    // 2단계: user_id 목록 추출
-    const userIds = [...new Set(comments.map((c) => c.user_id))]
+    // 2) user_id 목록 추출 (중복 제거 + 빈값 제거)
+    const userIds = Array.from(
+      new Set(safeComments.map((c) => c.user_id).filter(Boolean))
+    ) as string[]
 
-    // 3단계: users 정보 가져오기
-    const { data: users, error: usersError } = await supabaseAdmin
-      .from('users')
-      .select('user_id, name, avatar')
-      .in('user_id', userIds)
-
-    if (usersError) {
-      console.error('Users error:', usersError)
-    }
-
-    console.log('Users:', users)
-
-    // 4단계: experiences 정보 가져오기
-    const { data: experiences, error: expError } = await supabaseAdmin
-      .from('experiences')
-      .select('user_id, field, year')
-      .in('user_id', userIds)
-      .eq('status', true)
-
-    if (expError) {
-      console.error('Experiences error:', expError)
-    }
-
-    console.log('Experiences:', experiences)
-
-    // 5단계: 데이터 합치기
-    const processedData = comments.map((comment) => {
-      const user = users?.find((u) => u.user_id === comment.user_id)
-      const experience = experiences?.find((e) => e.user_id === comment.user_id)
-
-      return {
-        ...comment,
-        user: user
-          ? {
-              ...user,
-              experience: experience || null,
-            }
-          : null,
-      }
+    // 공용 유틸 사용: 댓글은 experience도 필요
+    const userMap = await buildUserProfileMap(userIds, {
+      includeExperience: true,
+      borderScale: 0.6,
+      accessoryScale: 0.7,
     })
 
-    console.log('Processed data:', processedData)
+    // 3) comments에 user 붙여서 반환
+    const processedData = safeComments.map((comment) => ({
+      ...comment,
+      user: userMap.get(comment.user_id) ?? null,
+    }))
 
     return NextResponse.json(processedData)
   } catch (error) {

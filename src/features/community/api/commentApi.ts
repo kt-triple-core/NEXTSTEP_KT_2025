@@ -1,4 +1,4 @@
-// features/community/model/api/commentApi.ts
+import { AvatarDecoration } from '../model/types'
 
 interface User {
   user_id: string
@@ -8,6 +8,7 @@ interface User {
     field: string
     year: number
   }
+  decorations?: AvatarDecoration | null
 }
 
 export interface Comment {

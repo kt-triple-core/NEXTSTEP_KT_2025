@@ -1,5 +1,26 @@
 export type CommunityTabKey = 'post' | 'news'
 
+type AccessoryPosition = 'top' | 'bottom-left' | 'bottom-right'
+
+export type AvatarDecoration = {
+  border?: {
+    source: string | null
+    style: string | null
+    scale?: number | null
+  } | null
+
+  accessories?: Partial<
+    Record<
+      AccessoryPosition,
+      {
+        source: string | null
+        style: string | null
+        scale?: number | null
+      }
+    >
+  >
+}
+
 export type PostWithRoadmap = {
   post_id: string
   content: string
@@ -16,9 +37,10 @@ export type PostWithRoadmap = {
     visibility: 'private' | 'public'
     status: any
   }
-  users: {
+  author: {
     user_id: string
     name: string
     avatar: string
-  }
+    decorations: AvatarDecoration | null
+  } | null
 }

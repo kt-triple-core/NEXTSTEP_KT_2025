@@ -50,7 +50,7 @@ export function DecorationImage({
         category === 'border'
           ? {
               inset: 0,
-              transform: `scale(1.2)`,
+              transform: `scale(1.25)`,
             }
           : {
               width: accessorySize,

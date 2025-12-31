@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/shared/libs/supabaseClient'
 import { requireUser } from '@/shared/libs/requireUser'
-import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 import { createWorkspace, updateWorkspace } from '@/shared/libs/workspaceLib'
 import { cloneRoadmapAsPublic } from '@/shared/libs/roadmapLib'
-import { PostWithRoadmap } from '@/features/community/model/types'
+import type { PostWithRoadmap } from '@/features/community/model/types'
+
+// ✅ 공용 유틸 (decorations + experience까지 필요하면 이걸)
+import { buildUserProfileMap } from '@/shared/libs/communityUserMap'
 
 // ================================
 // 커뮤니티 카드 목록 조회
@@ -39,83 +41,38 @@ export const GET = async (req: NextRequest) => {
       .eq('roadmap.status', true)
       .order('created_at', { ascending: false })
 
-    if (listId) {
-      query = query.eq('list_id', listId)
-    }
+    if (listId) query = query.eq('list_id', listId)
 
     const { data: posts, error } = await query.returns<PostWithRoadmap[]>()
     if (error) throw error
 
     const safePosts = posts ?? []
-    if (safePosts.length === 0) {
-      return NextResponse.json([])
-    }
+    if (safePosts.length === 0) return NextResponse.json([])
 
-    // --------------------------------
-    // user_id 수집
-    // --------------------------------
+    // 1) 작성자 user_id 수집
     const userIds = Array.from(
-      new Set(safePosts.map((p) => p.roadmap.user_id).filter(Boolean))
-    )
+      new Set(safePosts.map((p) => p.roadmap?.user_id).filter(Boolean))
+    ) as string[]
 
-    // --------------------------------
-    // users 조회 (기존 그대로)
-    // --------------------------------
-    const { data: users, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('user_id, name, avatar')
-      .in('user_id', userIds)
-
-    if (userError) throw userError
-
-    // --------------------------------
-    // experience 조회 (추가된 부분)
-    // --------------------------------
-    const { data: experiences, error: expError } = await supabaseAdmin
-      .from('experiences')
-      .select('user_id, field, year')
-      .in('user_id', userIds)
-      .eq('status', true)
-
-    if (expError) throw expError
-
-    // --------------------------------
-    // experience를 user_id 기준으로 묶기
-    // --------------------------------
-    const experienceMap = new Map<string, { field: string; year: number }[]>()
-
-    ;(experiences ?? []).forEach((exp) => {
-      if (!experienceMap.has(exp.user_id)) {
-        experienceMap.set(exp.user_id, [])
-      }
-      experienceMap.get(exp.user_id)!.push({
-        field: exp.field,
-        year: exp.year,
-      })
+    // 2) authorMap 만들기 (decorations + experience까지)
+    //    - experience가 "배열"이어야 하면 유틸 수정 필요.
+    //    - 현재 유틸은 experience: {field, year} | null 형태
+    const authorMap = await buildUserProfileMap(userIds, {
+      includeExperience: true,
+      borderScale: 0.6,
+      accessoryScale: 0.7,
     })
 
-    // --------------------------------
-    // userMap 생성 (기존 + experiences만 추가)
-    // --------------------------------
-    const userMap = new Map(
-      (users ?? []).map((u) => [
-        u.user_id,
-        {
-          user_id: u.user_id,
-          name: u.name,
-          avatar: u.avatar,
-          experiences: experienceMap.get(u.user_id) ?? [],
-        },
-      ])
-    )
+    // 3) posts에 author 붙여서 반환
+    const result = safePosts.map((p) => {
+      const authorId = p.roadmap?.user_id ?? null
 
-    // --------------------------------
-    // post에 users 붙이기
-    // --------------------------------
-    const result = safePosts.map((p) => ({
-      ...p,
-      users: userMap.get(p.roadmap.user_id) ?? null,
-    }))
+      return {
+        ...p,
+        authorId,
+        author: authorId ? (authorMap.get(authorId) ?? null) : null,
+      }
+    })
 
     return NextResponse.json(result)
   } catch (error) {
@@ -128,7 +85,7 @@ export const GET = async (req: NextRequest) => {
 }
 
 // ================================
-// 커뮤니티 글 생성
+// 게시글 작성
 // ================================
 export const POST = async (req: NextRequest) => {
   try {
@@ -136,15 +93,15 @@ export const POST = async (req: NextRequest) => {
     const body = await req.json()
     const { workspaceId, content, listId } = body
 
-    let result
-    if (workspaceId) {
-      result = await updateWorkspace(userId, workspaceId, body)
-    } else {
-      result = await createWorkspace(userId, body)
-    }
+    // 1) workspace, roadmap, node 정보 저장
+    const result = workspaceId
+      ? await updateWorkspace(userId, workspaceId, body)
+      : await createWorkspace(userId, body)
 
+    // 2) public roadmap 복제
     const publicRoadmapId = await cloneRoadmapAsPublic(userId, result.roadmapId)
 
+    // 3) post 생성
     const { data: post, error } = await supabase
       .from('posts')
       .insert({
