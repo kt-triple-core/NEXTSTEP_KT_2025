@@ -13,6 +13,7 @@ import {
 } from '@/features/user/shop/model/decorations'
 import axios, { AxiosError } from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { DecorationImage } from '../../shop/ui/DecorationImage'
 
 type Props = {
   onApplied?: () => void
@@ -157,17 +158,28 @@ const MyProfile = ({ onApplied }: Props) => {
               >
                 {/* 미리보기 */}
                 {item.category !== 'title' && item.category !== 'nickname' && (
-                  <div className="h-80 w-80">
-                    {item.source && (
-                      <Image
-                        src={item.source}
-                        alt={item.name}
-                        width={200}
-                        height={200}
-                        className="h-full w-full object-contain"
-                        unoptimized
+                  <div className="relative h-80 w-80 rounded-full bg-[#DBCFFF]">
+                    {/* border */}
+                    {item.category === 'border' && item.source && (
+                      <DecorationImage
+                        category="border"
+                        style={item.style as any}
+                        source={item.source}
+                        scale={item.scale ?? 1.2}
                       />
                     )}
+
+                    {/* accessory (top / bottom-left / bottom-right) */}
+                    {item.category === 'accessory' &&
+                      item.source &&
+                      isAccessoryPosition(item.style) && (
+                        <DecorationImage
+                          category="accessory"
+                          style={item.style}
+                          source={item.source}
+                          baseSize={80}
+                        />
+                      )}
                   </div>
                 )}
 
