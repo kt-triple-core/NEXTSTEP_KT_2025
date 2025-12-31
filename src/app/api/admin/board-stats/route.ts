@@ -3,7 +3,6 @@ import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 export async function GET() {
   try {
-    // 게시글 + 게시판 이름 조회
     const { data: posts, error: postError } = await supabaseAdmin
       .from('posts')
       .select(
@@ -24,7 +23,6 @@ export async function GET() {
       return NextResponse.json([])
     }
 
-    //댓글 수 집계 (post_id 기준)
     const postIds = posts.map((p) => p.post_id)
 
     const { data: comments, error: commentError } = await supabaseAdmin
@@ -53,7 +51,7 @@ export async function GET() {
     >()
 
     for (const p of posts) {
-      const boardName = p.list?.[0]?.name ?? 'UNKNOWN'
+      const boardName = p.list?.name ?? 'UNKNOWN'
 
       if (!boardMap.has(boardName)) {
         boardMap.set(boardName, {
