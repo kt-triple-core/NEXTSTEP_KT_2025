@@ -12,7 +12,7 @@ export const POST = async (req: NextRequest) => {
       .from('post_likes')
       .select('id')
       .eq('post_id', postId)
-      .eq('user_id', user.id)
+      .eq('user_id', user.userId)
       .single()
 
     if (existing) {
@@ -29,7 +29,7 @@ export const POST = async (req: NextRequest) => {
     // 좋아요 추가
     await supabaseAdmin.from('post_likes').insert({
       post_id: postId,
-      user_id: user.id,
+      user_id: user.userId,
     })
 
     await supabaseAdmin.rpc('increment_like', {

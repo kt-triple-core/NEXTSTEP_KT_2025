@@ -3,7 +3,6 @@ import { supabaseAdmin } from '@/shared/libs/supabaseAdmin'
 
 export async function GET() {
   try {
-    // 1️⃣ 게시글 + 게시판 이름 조회
     const { data: posts, error: postError } = await supabaseAdmin
       .from('posts')
       .select(
@@ -24,13 +23,12 @@ export async function GET() {
       return NextResponse.json([])
     }
 
-    // 2️⃣ 댓글 수 집계 (post_id 기준)
     const postIds = posts.map((p) => p.post_id)
 
     const { data: comments, error: commentError } = await supabaseAdmin
       .from('comments')
       .select('post_id')
-      .in('post_id', postIds) // ⭐ 핵심 수정
+      .in('post_id', postIds)
 
     if (commentError) throw commentError
 
@@ -40,7 +38,7 @@ export async function GET() {
       commentCountMap.set(c.post_id, (commentCountMap.get(c.post_id) ?? 0) + 1)
     }
 
-    // 3️⃣ 게시판별 집계
+    // 게시판별 집계
     const boardMap = new Map<
       string,
       {

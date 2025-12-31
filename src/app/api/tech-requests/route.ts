@@ -4,8 +4,8 @@ import { createServerSupabase } from '@/shared/libs/supabaseServer'
 
 export async function POST(req: Request) {
   try {
-    // 1️⃣ 현재 로그인한 사용자 가져오기
-    const supabase = createServerSupabase()
+    // 현재 로그인한 사용자 가져오기
+    const supabase = await createServerSupabase()
     const {
       data: { user },
       error: authError,
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     }
 
-    // 2️⃣ 요청 데이터 파싱
+    // 요청 데이터 파싱
     const { name, description, icon_url } = await req.json()
 
     if (!name || !description) {
@@ -25,12 +25,12 @@ export async function POST(req: Request) {
       )
     }
 
-    // 3️⃣ tech_requests에 저장 (⭐ user_id 추가)
+    // tech_requests에 저장
     const { error } = await supabaseAdmin.from('tech_requests').insert({
       name,
       description,
       icon_url: icon_url || null,
-      user_id: user.id, // ✅ 핵심
+      user_id: user.id,
       status: 'pending',
     })
 

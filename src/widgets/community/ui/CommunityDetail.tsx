@@ -317,6 +317,13 @@ export default function CommunityDetail({
                 panOnDrag={false}
                 proOptions={{ hideAttribution: true }}
                 nodeTypes={nodeTypes}
+                deleteKeyCode={null}
+                multiSelectionKeyCode={null}
+                selectionKeyCode={null}
+                zoomActivationKeyCode={null}
+                panActivationKeyCode={null}
+                nodesFocusable={false}
+                edgesFocusable={false}
                 className="h-full w-full"
               >
                 <Background

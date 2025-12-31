@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import StatusPill from './StatusPill'
 import TechFormModal from './TechFormModal'
+import { Tech } from '../model/types'
 
 interface TechRequest {
   id: string
@@ -107,13 +108,14 @@ export default function TechRequests() {
 
       {editing && (
         <TechFormModal
-          tech={{
-            // 🔁 TechRequest → Tech 타입으로 매핑
-            id: editing.id,
-            name: editing.name,
-            category: editing.description, // ⭐ 핵심
-            iconUrl: editing.icon_url ?? '',
-          }}
+          tech={
+            {
+              id: editing.id,
+              name: editing.name,
+              category: editing.description,
+              iconUrl: editing.icon_url ?? '',
+            } as Tech
+          }
           onClose={() => setEditing(null)}
           onSave={async (name, category, iconUrl) => {
             await fetch(`/api/admin/tech-requests/${editing.id}`, {
@@ -121,7 +123,7 @@ export default function TechRequests() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 name,
-                description: category, // 다시 되돌림
+                description: category,
                 icon_url: iconUrl,
               }),
             })

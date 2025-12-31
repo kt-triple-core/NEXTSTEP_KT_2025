@@ -92,6 +92,13 @@ const CommunityCard = ({
           panOnDrag={false}
           proOptions={{ hideAttribution: true }}
           nodeTypes={nodeTypes}
+          deleteKeyCode={null}
+          multiSelectionKeyCode={null}
+          selectionKeyCode={null}
+          zoomActivationKeyCode={null}
+          panActivationKeyCode={null}
+          nodesFocusable={false}
+          edgesFocusable={false}
         >
           <Background variant={BackgroundVariant.Lines} color={gridColor} />
         </ReactFlow>
