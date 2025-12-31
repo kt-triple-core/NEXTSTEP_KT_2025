@@ -1,5 +1,7 @@
 import { Button } from '@/shared/ui'
 import React from 'react'
+import { useState } from 'react'
+import TechRequestModal from './TechRequestModal'
 
 interface TechItem {
   tech_id?: string
@@ -40,6 +42,8 @@ const TechRecommendationList: React.FC<Props> = ({
   onNew,
   onAddNode,
 }) => {
+  const [requestItem, setRequestItem] = useState<TechItem | null>(null)
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-24">
@@ -156,10 +160,30 @@ const TechRecommendationList: React.FC<Props> = ({
                       <Button
                         variant="gradient"
                         className="h-50 w-full"
-                        onClick={() => onNew && onNew(item)}
+                        onClick={() => setRequestItem(item)}
                       >
                         Request to Admin
                       </Button>
+                      {requestItem && (
+                        <TechRequestModal
+                          initialData={requestItem}
+                          onClose={() => setRequestItem(null)}
+                          onSubmit={async (data) => {
+                            await fetch('/api/tech-requests', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                name: data.name,
+                                description: data.description,
+                                icon_url: data.icon_url,
+                              }),
+                            })
+
+                            alert('관리자에게 요청이 전달되었습니다.')
+                            setRequestItem(null)
+                          }}
+                        />
+                      )}
                     </div>
                   )}
                 </>

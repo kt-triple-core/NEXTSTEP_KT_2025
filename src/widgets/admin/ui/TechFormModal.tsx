@@ -43,10 +43,11 @@ export default function TechFormModal({ tech, onClose, onSave }: Props) {
           />
 
           {/* 설명 */}
-          <input
+          <textarea
             placeholder="설명 (예: 프론트엔드 라이브러리)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            rows={3}
             className="border-border bg-background-light rounded-xl border px-14 py-10 text-sm"
           />
 
