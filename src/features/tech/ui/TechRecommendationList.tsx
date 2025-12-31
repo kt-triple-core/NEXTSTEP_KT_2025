@@ -2,16 +2,17 @@ import { Button } from '@/shared/ui'
 import React from 'react'
 import { useState } from 'react'
 import TechRequestModal from './TechRequestModal'
+import { TechItem } from '@/features/ai/model/useTechRecommendation'
 
-interface TechItem {
-  tech_id?: string
-  name?: string
-  description?: string
-  icon_url?: string
-  usage_count?: number
-  score?: number
-  isNew?: boolean
-}
+// interface TechItem {
+//   tech_id?: string
+//   name?: string
+//   description?: string
+//   icon_url?: string
+//   usage_count?: number
+//   score?: number
+//   isNew?: boolean
+// }
 
 interface Props {
   data: TechItem[]
@@ -118,16 +119,16 @@ const TechRecommendationList: React.FC<Props> = ({
               {isPrimarySearch ? (
                 // 1차 DB 검색 결과
                 <>
-                  <Button
+                  {/* <Button
                     variant="secondary"
                     className="h-50 w-[calc(50%-5px)]"
                     onClick={() => onComplete && onComplete(item)}
                   >
                     Completed
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="gradient"
-                    className="h-50 w-[calc(50%-5px)]"
+                    className="h-50 w-full"
                     onClick={() => handleUpdateNode && handleUpdateNode(item)}
                   >
                     Save
@@ -138,16 +139,16 @@ const TechRecommendationList: React.FC<Props> = ({
                 <>
                   {!isNewTech && (
                     <>
-                      <Button
+                      {/* <Button
                         variant="secondary"
                         className="h-50 w-[calc(50%-5px)]"
                         onClick={() => onComplete && onComplete(item)}
                       >
                         Completed
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="gradient"
-                        className="h-50 w-[calc(50%-5px)]"
+                        className="h-50 w-full"
                         onClick={() => onAddNode && onAddNode(item)}
                       >
                         New
