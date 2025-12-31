@@ -34,10 +34,28 @@ type DecoRow = {
   source: string | null
 }
 
+export type UserWithDecorations = {
+  user_id: string
+  name: string | null
+  avatar: string | null
+  decorations: AvatarDecoration | null
+}
+
+export type ExperienceRow = {
+  user_id: string
+  field: string
+  year: number
+}
+
+export type UserWithProfile = UserWithDecorations & {
+  //  배열로 제공 (UI에서 .map 가능)
+  experiences: Array<{ field: string; year: number }>
+}
+
 export async function buildUserDecorationMap(
   userIds: string[],
   opts?: { borderScale?: number; accessoryScale?: number }
-) {
+): Promise<Map<string, UserWithDecorations>> {
   const borderScale = opts?.borderScale ?? 0.6
   const accessoryScale = opts?.accessoryScale ?? 0.7
 
@@ -91,15 +109,7 @@ export async function buildUserDecorationMap(
   }
 
   // 4) userMap 만들기
-  const userMap = new Map<
-    string,
-    {
-      user_id: string
-      name: string | null
-      avatar: string | null
-      decorations: AvatarDecoration | null
-    }
-  >()
+  const userMap = new Map<string, UserWithDecorations>()
 
   for (const u of safeUsers) {
     const borderRow = u.decoration_border
@@ -167,7 +177,7 @@ export async function buildUserProfileMap(
     borderScale?: number
     accessoryScale?: number
   }
-) {
+): Promise<Map<string, UserWithDecorations | UserWithProfile>> {
   const baseMap = await buildUserDecorationMap(userIds, {
     borderScale: opts?.borderScale,
     accessoryScale: opts?.accessoryScale,
@@ -175,7 +185,7 @@ export async function buildUserProfileMap(
 
   if (!opts?.includeExperience) return baseMap
 
-  // experience만 추가
+  //  experiences를 "배열"로 추가
   const { data: experiences, error: expError } = await supabaseAdmin
     .from('experiences')
     .select('user_id, field, year')
@@ -184,16 +194,20 @@ export async function buildUserProfileMap(
 
   if (expError) throw expError
 
-  const expByUser = new Map(
-    (experiences ?? []).map((e) => [
-      e.user_id,
-      { field: e.field, year: e.year },
-    ])
-  )
-
-  const merged = new Map<string, any>()
-  for (const [uid, u] of baseMap.entries()) {
-    merged.set(uid, { ...u, experience: expByUser.get(uid) ?? null })
+  // user_id -> experiences[]
+  const expMap = new Map<string, Array<{ field: string; year: number }>>()
+  for (const e of (experiences ?? []) as unknown as ExperienceRow[]) {
+    if (!expMap.has(e.user_id)) expMap.set(e.user_id, [])
+    expMap.get(e.user_id)!.push({ field: e.field, year: e.year })
   }
+
+  const merged = new Map<string, UserWithProfile>()
+  for (const [uid, u] of baseMap.entries()) {
+    merged.set(uid, {
+      ...u,
+      experiences: expMap.get(uid) ?? [],
+    })
+  }
+
   return merged
 }

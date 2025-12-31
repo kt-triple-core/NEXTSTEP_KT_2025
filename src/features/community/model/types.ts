@@ -42,5 +42,6 @@ export type PostWithRoadmap = {
     name: string
     avatar: string
     decorations: AvatarDecoration | null
+    experience?: { field: string; year: number } | null
   } | null
 }
