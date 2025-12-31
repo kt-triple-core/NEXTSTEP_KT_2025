@@ -114,6 +114,13 @@ const Workspace = () => {
           onConnectEnd={onConnectEnd}
           nodeTypes={nodeTypes}
           nodeOrigin={nodeOrigin}
+          deleteKeyCode={null}
+          multiSelectionKeyCode={null}
+          selectionKeyCode={null}
+          zoomActivationKeyCode={null}
+          panActivationKeyCode={null}
+          nodesFocusable={false}
+          edgesFocusable={false}
           fitView
           className={`h-full w-full`}
         />
