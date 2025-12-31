@@ -68,8 +68,6 @@ const CommentItem = ({
   const userName = comment.user?.name || '익명'
   const userExperience = comment.user?.experience
 
-  console.log(comment.user, '커멘트')
-
   return (
     <div className="bg-secondary flex gap-12 rounded-lg p-16">
       {/* 프로필 이미지 */}

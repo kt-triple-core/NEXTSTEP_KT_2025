@@ -23,6 +23,7 @@ export type AvatarDecoration = {
 
 export type PostWithRoadmap = {
   post_id: string
+  content: string
   title: string
   like_count: any
   roadmap_id: string

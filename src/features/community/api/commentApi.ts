@@ -1,5 +1,3 @@
-// [경로] features/community/model/api/commentApi.ts
-
 import { AvatarDecoration } from '../model/types'
 
 interface User {
@@ -26,7 +24,7 @@ export interface Comment {
   replies?: Comment[]
 }
 
-export type CommentType = 'news' | 'post'
+export type CommentType = 'news' | 'community'
 
 interface CreateCommentDto {
   content: string
