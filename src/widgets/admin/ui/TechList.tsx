@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Tech } from '../model/types'
 import TechFormModal from './TechFormModal'
 
@@ -9,8 +9,7 @@ export default function TechList() {
   const [editing, setEditing] = useState<Tech | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // 🔁 목록 다시 불러오기 (실무 패턴)
-  const reload = async () => {
+  const reload = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/techs')
       const json = await res.json()
@@ -26,12 +25,16 @@ export default function TechList() {
       console.error(e)
       setList([])
     }
-  }
-
-  // 🔥 최초 로딩
-  useEffect(() => {
-    reload().finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    const load = async () => {
+      await reload()
+      setLoading(false)
+    }
+
+    load()
+  }, [reload])
 
   if (loading) {
     return (
