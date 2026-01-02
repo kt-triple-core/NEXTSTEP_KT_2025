@@ -4,9 +4,11 @@ import { Button } from '@/shared/ui'
 import { List } from '@/shared/ui/icon'
 import { WorkspaceListItem } from '../model/types'
 import { formatKoreaTime } from '@/shared/libs/formatKoreaTime'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import ListDropdownMenu from './ListDropdownMenu'
+import { useWorkspaceStore } from '../model'
+import { usePreventNavigation } from '@/shared/model/usePreventNavigation'
 
 const WorkspaceList = () => {
   const { isOpen, toggleOpen } = useOpen()
@@ -18,7 +20,12 @@ const WorkspaceList = () => {
   const searchParams = useSearchParams()
   const currentWorkspaceId = searchParams.get('workspace')
 
-  const router = useRouter()
+  const isEdited = useWorkspaceStore((s) => s.isEdited)
+  const { safeNavigate } = usePreventNavigation({
+    when: isEdited,
+    message:
+      '저장하지 않은 변경사항이 있습니다. 워크스페이스를 전환하시겠습니까?',
+  })
 
   // workspaceId를 쿼리에 넣는 함수
   const handleSelectWorkspace = (id: string | null) => {
@@ -28,7 +35,7 @@ const WorkspaceList = () => {
     } else {
       query.delete('workspace')
     }
-    router.push(`${window.location.pathname}?${query.toString()}`)
+    safeNavigate(`${window.location.pathname}?${query.toString()}`)
   }
 
   return (

@@ -13,9 +13,11 @@ import { useConnectNodes } from '@/features/roadmap/connectNodes/model'
 import { SaveWorkspaceModal } from '@/features/workspace/saveWorkspace/ui'
 import { PostWorkspaceModal } from '@/features/workspace/postWorkspace/ui'
 import CustomNode from './CustomNode'
+import { AlertCircle } from '@/shared/ui/icon'
 
 const Workspace = () => {
   const { nodes, onNodesChange, edges, selectedNode } = useWorkspaceStore()
+  const isEdited = useWorkspaceStore((s) => s.isEdited)
   const nodeOrigin: [number, number] = [0.5, 0]
   const {
     isOpen: isSidebarOpen,
@@ -126,9 +128,19 @@ const Workspace = () => {
         />
         <Background variant={BackgroundVariant.Lines} color={gridColor} />
         <WorkspaceList />
-        <div className="bg-primary absolute top-10 right-35 flex h-50 gap-10 rounded-md p-8">
-          <PostWorkspaceModal />
-          <SaveWorkspaceModal />
+        <div className="absolute top-10 right-35 flex items-center gap-10">
+          {isEdited && (
+            <div className="flex h-40 items-center justify-center gap-5 rounded-md border border-amber-200 bg-amber-50 p-10">
+              <AlertCircle size={16} className="stroke-amber-600" />
+              <p className="text-14 text-amber-600">
+                저장되지 않은 변경사항이 있습니다.
+              </p>
+            </div>
+          )}
+          <div className="flex h-40 gap-10 rounded-md">
+            <PostWorkspaceModal />
+            <SaveWorkspaceModal />
+          </div>
         </div>
       </div>
       <SearchSidebar

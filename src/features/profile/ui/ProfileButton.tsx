@@ -1,21 +1,24 @@
 'use client'
-
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import MyProfileAvatar from './MyProfileAvatar'
+import Link from 'next/link'
+import { useWorkspaceStore } from '@/widgets/workspace/model'
+import { usePreventNavigation } from '@/shared/model/usePreventNavigation'
 
 const ProfileButton = () => {
-  const router = useRouter()
   const { data: session } = useSession()
+  const isEdited = useWorkspaceStore((s) => s.isEdited)
+  const { handleLinkClick } = usePreventNavigation({ when: isEdited })
   if (!session?.user) return null
 
   return (
-    <button
-      onClick={() => router.push('/users')}
+    <Link
+      href="/users"
       className="flex items-center gap-8 hover:cursor-pointer"
+      onClick={handleLinkClick}
     >
       <MyProfileAvatar size={45} />
-    </button>
+    </Link>
   )
 }
 

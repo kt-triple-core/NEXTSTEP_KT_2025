@@ -12,6 +12,7 @@ import { useWorkspaceStore } from '@/widgets/workspace/model'
 const PostWorkspaceModal = () => {
   const { isOpen, setIsOpen } = useOpen()
   const { workspaceTitle } = useWorkspaceStore()
+  const resetIsEdited = useWorkspaceStore((s) => s.resetIsEdited)
   const [titleInput, setTitleInput] = useState<string>('')
   const [contentInput, setContentInput] = useState<string>('')
   const [listId, setListId] = useState<string | null>(null)
@@ -41,6 +42,7 @@ const PostWorkspaceModal = () => {
           setIsOpen(false)
           setTitleInput('')
           setListId(null)
+          resetIsEdited()
           toast.success('워크스페이스가 게시되었습니다.')
         },
       }

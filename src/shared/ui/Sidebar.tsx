@@ -15,7 +15,7 @@ const Sidebar = ({ isOpen, toggleOpen, children }: SidebarProps) => {
         {children}
       </div>
       <button
-        className="bg-primary absolute top-10 -left-25 flex h-50 w-25 items-center justify-center rounded-s-xl hover:cursor-pointer"
+        className="bg-primary absolute top-10 -left-25 flex h-40 w-25 items-center justify-center rounded-s-md hover:cursor-pointer"
         onClick={toggleOpen}
       >
         {isOpen ? <ChevronRight /> : <ChevronLeft />}

@@ -11,6 +11,7 @@ import { useWorkspaceStore } from '@/widgets/workspace/model'
 const SaveWorkspaceModal = () => {
   const { isOpen, setIsOpen } = useOpen()
   const { workspaceTitle } = useWorkspaceStore()
+  const resetIsEdited = useWorkspaceStore((s) => s.resetIsEdited)
   const [titleInput, setTitleInput] = useState<string>('')
 
   const { status } = useSession()
@@ -30,6 +31,7 @@ const SaveWorkspaceModal = () => {
       onSuccess: () => {
         setIsOpen(false)
         setTitleInput('')
+        resetIsEdited()
         toast.success('워크스페이스가 저장되었습니다.')
       },
     })
